@@ -1,13 +1,19 @@
 package tech.zolhungaj.amqcontestbot.chat;
 
-import tech.zolhungaj.amqapi.AmqApi;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 import tech.zolhungaj.amqapi.servercommands.gameroom.GameChatMessage;
 import tech.zolhungaj.amqapi.servercommands.gameroom.GameChatUpdate;
+import tech.zolhungaj.amqcontestbot.ApiManager;
 
+@Component
+@Slf4j
 public class ChatMonitor {
 
-    public ChatMonitor(AmqApi api){
+    public ChatMonitor(@Autowired ApiManager api){
         api.on(command -> {
+            log.info("ChatMonitor received {}", command);
             if(command instanceof GameChatMessage gameChatMessage){
                 this.handleMessage(gameChatMessage);
             }else if (command instanceof GameChatUpdate gameChatUpdate){

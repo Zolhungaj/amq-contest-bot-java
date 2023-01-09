@@ -1,11 +1,11 @@
 package tech.zolhungaj.amqcontestbot;
 
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.ApplicationRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
-import tech.zolhungaj.amqapi.AmqApi;
 import tech.zolhungaj.amqapi.servercommands.globalstate.OnlinePlayerCountChange;
 
 @SpringBootApplication
@@ -15,16 +15,16 @@ public class AmqContestBotApplication implements ApplicationRunner {
 	public static void main(String[] args) {
 		SpringApplication.run(AmqContestBotApplication.class, args);
 	}
+	private final ApiManager api;
+
+	public AmqContestBotApplication(@Autowired ApiManager api){
+		this.api = api;
+	}
 
 	@Override
-	public void run(ApplicationArguments args) throws Exception {
-		String username = args.getOptionValues("username").get(0);
-		String password = args.getOptionValues("password").get(0);
-		boolean force = args.getOptionValues("force") != null;
-		var api = new AmqApi(username, password, force);
-
+	public void run(ApplicationArguments args) {
 		api.on(command -> {
-			log.info("Received command {}", command);
+			log.info("Main received command {}", command);
 			return true;
 		});
 		api.on(command -> {
@@ -33,9 +33,6 @@ public class AmqContestBotApplication implements ApplicationRunner {
 			}
 			return true;
 		});
-		Thread apiThread = new Thread(api);
-		apiThread.start();
-		apiThread.join();
-		System.exit(0);
+		api.start();
 	}
 }

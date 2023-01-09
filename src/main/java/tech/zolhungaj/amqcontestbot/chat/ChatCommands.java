@@ -1,17 +1,22 @@
 package tech.zolhungaj.amqcontestbot.chat;
 
 import lombok.NonNull;
-import tech.zolhungaj.amqapi.AmqApi;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 import tech.zolhungaj.amqapi.servercommands.gameroom.GameChatMessage;
 import tech.zolhungaj.amqapi.servercommands.gameroom.GameChatUpdate;
+import tech.zolhungaj.amqcontestbot.ApiManager;
 
-//@Component //TODO: wrap api in something auto-wireable
+@Component
+@Slf4j
 public class ChatCommands {
 
     //TODO: database repositories
 
-    public ChatCommands(AmqApi api){
+    public ChatCommands(@Autowired ApiManager api){
         api.on(command -> {
+            log.info("ChatCommand received: {}", command);
             if(command instanceof GameChatMessage gameChatMessage){
                 this.handleMessage(gameChatMessage);
             }else if (command instanceof GameChatUpdate gameChatUpdate){
