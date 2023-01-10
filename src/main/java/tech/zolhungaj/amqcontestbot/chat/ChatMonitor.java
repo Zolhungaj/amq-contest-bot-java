@@ -7,8 +7,8 @@ import tech.zolhungaj.amqapi.servercommands.gameroom.GameChatMessage;
 import tech.zolhungaj.amqapi.servercommands.gameroom.GameChatUpdate;
 import tech.zolhungaj.amqcontestbot.ApiManager;
 
-@Component
 @Slf4j
+@Component
 public class ChatMonitor {
 
     public ChatMonitor(@Autowired ApiManager api){
@@ -24,6 +24,6 @@ public class ChatMonitor {
     }
 
     private void handleMessage(GameChatMessage message){
-
+        //TODO: add filtering etc.
     }
 }
