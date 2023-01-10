@@ -8,11 +8,14 @@ import tech.zolhungaj.amqapi.servercommands.gameroom.GameChatMessage;
 import tech.zolhungaj.amqapi.servercommands.gameroom.GameChatUpdate;
 import tech.zolhungaj.amqcontestbot.ApiManager;
 
+import java.util.*;
+import java.util.function.BiConsumer;
+
 @Component
 @Slf4j
 public class ChatCommands {
 
-    //TODO: database repositories
+    private final Map<String, BiConsumer<String, List<String>>> registeredCommands = new HashMap<>();
 
     public ChatCommands(@Autowired ApiManager api){
         api.on(command -> {
@@ -26,6 +29,22 @@ public class ChatCommands {
         });
     }
 
+    public void register(BiConsumer<String, List<String>> handler, String... commandNames){
+        this.register(handler, List.of(commandNames));
+    }
+
+    public void register(BiConsumer<String, List<String>> handler, Collection<String> commandNames){
+        if(commandNames.isEmpty()){
+            throw new IllegalArgumentException("Command must have at least one name");
+        }
+        List<String> repeats = commandNames.stream().filter(registeredCommands::containsKey).toList();
+        if(!repeats.isEmpty()){
+            //prevent dumb mistakes in command naming
+            throw new IllegalArgumentException("Commands '" + String.join("', '") + "' are already defined");
+        }
+        commandNames.forEach(commandName -> registeredCommands.put(commandName, handler));
+    }
+
     private void handleMessage(@NonNull GameChatMessage message){
         if(message.message().startsWith("/")){
             handleCommand(message.message(), message.sender());
@@ -33,6 +52,14 @@ public class ChatCommands {
     }
 
     private void handleCommand(@NonNull String message, @NonNull String sender){
-        //TODO: handle command
+        message = message.substring(1);//remove /
+        List<String> splitCommand = new ArrayList<>(List.of(message.split(" +")));
+        String command = splitCommand.remove(0);
+        BiConsumer<String, List<String>> handler = registeredCommands.get(command);
+        if(handler != null){
+            handler.accept(sender, splitCommand);
+        }else{
+            //TODO: send message via ChatManager
+        }
     }
 }
