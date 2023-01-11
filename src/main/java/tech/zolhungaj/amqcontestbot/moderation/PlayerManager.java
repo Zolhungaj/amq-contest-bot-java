@@ -32,6 +32,12 @@ public class PlayerManager {
             //TODO: PlayerJoined
             return true;
         });
+        this.registerBanCommands(chatCommands);
+        this.registerBanTrueCommands(chatCommands);
+        this.registerKickCommands(chatCommands);
+    }
+
+    private void registerBanCommands(ChatCommands chatCommands){
         chatCommands.register((sender, arguments) -> {
             if(arguments.size() != 1){
                 throw new IllegalArgumentException();
@@ -45,6 +51,18 @@ public class PlayerManager {
             if(arguments.size() != 1){
                 throw new IllegalArgumentException();
             }
+            String nickname = arguments.get(0);
+            if(playerService.isModerator(sender)){
+                unban(nickname);
+            }
+        }, "unban");
+    }
+
+    private void registerBanTrueCommands(ChatCommands chatCommands){
+        chatCommands.register((sender, arguments) -> {
+            if(arguments.size() != 1){
+                throw new IllegalArgumentException();
+            }
             String trueName = arguments.get(0);
             if(playerService.isModerator(sender)){
                 banByTrueName(trueName);
@@ -54,20 +72,14 @@ public class PlayerManager {
             if(arguments.size() != 1){
                 throw new IllegalArgumentException();
             }
-            String nickname = arguments.get(0);
-            if(playerService.isModerator(sender)){
-                unban(nickname);
-            }
-        }, "unban");
-        chatCommands.register((sender, arguments) -> {
-            if(arguments.size() != 1){
-                throw new IllegalArgumentException();
-            }
             String trueName = arguments.get(0);
             if(playerService.isModerator(sender)){
                 unbanByTrueName(trueName);
             }
         }, "unbantrue");
+    }
+
+    private void registerKickCommands(ChatCommands chatCommands){
         chatCommands.register((sender, arguments) -> {
             if(arguments.size() != 1){
                 throw new IllegalArgumentException();
