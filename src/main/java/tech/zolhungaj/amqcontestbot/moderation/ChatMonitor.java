@@ -15,10 +15,10 @@ import java.util.regex.Pattern;
 public class ChatMonitor {
 
     private final Set<BannedPhrase> bannedPhrases;
-    private final PlayerManager playerManager;
+    private final PunishmentManager punishmentManager;
 
-    public ChatMonitor(@Autowired ApiManager api, @Autowired PlayerManager playerManager){
-        this.playerManager = playerManager;
+    public ChatMonitor(@Autowired ApiManager api, @Autowired PunishmentManager punishmentManager){
+        this.punishmentManager = punishmentManager;
         bannedPhrases = Set.of();
         api.on(command -> {
             log.info("ChatMonitor received {}", command);
@@ -35,7 +35,7 @@ public class ChatMonitor {
         String message = gameChatMessage.message();
         for(BannedPhrase phrase : bannedPhrases){
             if(phrase.pattern.matcher(message).find()){
-                playerManager.kick(gameChatMessage.sender());
+                punishmentManager.kick(gameChatMessage.sender());
                 //TODO: report once API has it ready
             }
         }

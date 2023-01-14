@@ -11,17 +11,17 @@ import java.util.HashSet;
 import java.util.Set;
 
 @Component
-public class PlayerManager {
+public class PunishmentManager {
     private final ApiManager api;
     private final NameResolver nameResolver;
     private final PlayerService playerService;
 
     private final Set<String> kickedThisSession = new HashSet<>();
 
-    public PlayerManager(@Autowired ApiManager api,
-                         @Autowired NameResolver nameResolver,
-                         @Autowired PlayerService playerService,
-                         @Autowired ChatCommands chatCommands){
+    public PunishmentManager(@Autowired ApiManager api,
+                             @Autowired NameResolver nameResolver,
+                             @Autowired PlayerService playerService,
+                             @Autowired ChatCommands chatCommands){
         this.api = api;
         this.nameResolver = nameResolver;
         this.playerService = playerService;

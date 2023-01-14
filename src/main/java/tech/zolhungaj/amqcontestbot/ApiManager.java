@@ -5,11 +5,20 @@ import org.springframework.stereotype.Component;
 import tech.zolhungaj.amqapi.AmqApi;
 import tech.zolhungaj.amqapi.EventHandler;
 import tech.zolhungaj.amqapi.clientcommands.ClientCommand;
+import tech.zolhungaj.amqapi.servercommands.globalstate.LoginComplete;
 
 @Component
 public class ApiManager {
     private final AmqApi api;
+    private String selfName;
     public ApiManager(@Autowired ApiConfiguration configuration){
+        this.on(command -> {
+            if(command instanceof LoginComplete loginComplete){
+                selfName = loginComplete.selfName();
+                return true;
+            }
+            return false;
+        });
         this.api = new AmqApi(configuration.getUsername(), configuration.getPassword(), configuration.isForceConnect());
     }
 
@@ -27,6 +36,10 @@ public class ApiManager {
 
     public long getPing(){
         return this.api.getCurrentPing();
+    }
+
+    public String getSelfName(){
+        return this.selfName;
     }
 
     private Thread thread;

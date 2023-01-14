@@ -33,24 +33,7 @@ public class ChatCommands {
             }
             return true;
         });
-        register((sender, arguments) -> {
-            if(arguments.isEmpty()){
-                help();
-            } else if(arguments.size() == 1) {
-                String argument = arguments.get(0);
-                help(argument);
-            } else{
-                throw new IllegalArgumentException();
-            }
-        }, "help", "h");
-        register((sender, arguments) -> {
-            if(arguments.size() == 1){
-                String argument = arguments.get(0);
-                listAliases(argument);
-            }else{
-                throw new IllegalArgumentException();
-            }
-        }, "alias");
+        registerChatCommands();
     }
 
     public void register(BiConsumer<String, List<String>> handler, String primaryCommandName, String... aliases){
@@ -100,6 +83,35 @@ public class ChatCommands {
         }else{
             chatManager.send(UNKNOWN_COMMAND_I18N_NAME);
         }
+    }
+
+    private void registerChatCommands(){
+        registerHelp();
+        registerAlias();
+    }
+
+    private void registerHelp(){
+        register((sender, arguments) -> {
+            if(arguments.isEmpty()){
+                help();
+            } else if(arguments.size() == 1) {
+                String argument = arguments.get(0);
+                help(argument);
+            } else{
+                throw new IllegalArgumentException();
+            }
+        }, "help", "h");
+    }
+
+    private void registerAlias(){
+        register((sender, arguments) -> {
+            if(arguments.size() == 1){
+                String argument = arguments.get(0);
+                listAliases(argument);
+            }else{
+                throw new IllegalArgumentException();
+            }
+        }, "alias");
     }
 
     private void help(){
