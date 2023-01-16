@@ -20,10 +20,10 @@ public class ChatCommands {
     private static final String UNKNOWN_COMMAND_I18N_NAME = "error_command_unknown";
     private final Map<String, Command> registeredCommands = new HashMap<>();
 
-    private final ChatManager chatManager;
+    private final ChatController chatController;
 
-    public ChatCommands(@Autowired ApiManager api, @Autowired ChatManager chatManager){
-        this.chatManager = chatManager;
+    public ChatCommands(@Autowired ApiManager api, @Autowired ChatController chatController){
+        this.chatController = chatController;
         api.on(command -> {
             log.info("ChatCommand received: {}", command);
             if(command instanceof GameChatMessage gameChatMessage){
@@ -78,10 +78,10 @@ public class ChatCommands {
             try{
                 command.handler().accept(sender, splitCommand);
             }catch(IllegalArgumentException e){
-                chatManager.send(command.i18nCanonicalNameUsage(), e.getMessage());
+                chatController.send(command.i18nCanonicalNameUsage(), e.getMessage());
             }
         }else{
-            chatManager.send(UNKNOWN_COMMAND_I18N_NAME);
+            chatController.send(UNKNOWN_COMMAND_I18N_NAME);
         }
     }
 
@@ -117,24 +117,24 @@ public class ChatCommands {
     private void help(){
         Set<Command> commands = new HashSet<>(registeredCommands.values());
         List<String> commandNames = commands.stream().map(Command::commandName).toList();
-        chatManager.send("command_list", String.join(", ", commandNames));
+        chatController.send("command_list", String.join(", ", commandNames));
     }
     private void help(String commandName){
         Command command = registeredCommands.get(commandName);
         if(command != null){
-            chatManager.send(command.i18nCanonicalNameDescription(), command.commandName, command.aliasesToString());
-            chatManager.send(command.i18nCanonicalNameUsage(), command.commandName);
+            chatController.send(command.i18nCanonicalNameDescription(), command.commandName, command.aliasesToString());
+            chatController.send(command.i18nCanonicalNameUsage(), command.commandName);
         }else{
-            chatManager.send(UNKNOWN_COMMAND_I18N_NAME);
+            chatController.send(UNKNOWN_COMMAND_I18N_NAME);
         }
     }
 
     private void listAliases(String commandName){
         Command command = registeredCommands.get(commandName);
         if(command != null){
-            chatManager.send("command_alias_list", command.commandName, command.aliasesToString());
+            chatController.send("command_alias_list", command.commandName, command.aliasesToString());
         }else{
-            chatManager.send(UNKNOWN_COMMAND_I18N_NAME);
+            chatController.send(UNKNOWN_COMMAND_I18N_NAME);
         }
     }
 

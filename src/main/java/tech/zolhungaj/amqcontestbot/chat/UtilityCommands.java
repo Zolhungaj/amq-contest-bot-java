@@ -14,21 +14,21 @@ public class UtilityCommands {
 
     private final ApiManager api;
     private final ChatCommands chatCommands;
-    private final ChatManager chatManager;
+    private final ChatController chatController;
 
     public UtilityCommands(@Autowired ApiManager api,
                            @Autowired ChatCommands chatCommands,
-                           @Autowired ChatManager chatManager){
+                           @Autowired ChatController chatController){
         this.api = api;
         this.chatCommands = chatCommands;
-        this.chatManager = chatManager;
+        this.chatController = chatController;
         registerPing();
     }
 
     private void registerPing(){
         chatCommands.register((sender, arguments) -> {
             long ping = api.getPing();
-            String sentMessage = chatManager.send("ping.base", ping).get(0);
+            String sentMessage = chatController.send("ping.base", ping).get(0);
             Instant sendInstant = Instant.now();
             long sendInstantAsMillis = sendInstant.toEpochMilli();
             Predicate<GameChatMessage> printWhenMatch = gameChatMessage -> {
@@ -37,7 +37,7 @@ public class UtilityCommands {
                     Instant receiveInstant = Instant.now();
                     long receiveInstantAsMillis = receiveInstant.toEpochMilli();
                     long difference = receiveInstantAsMillis - sendInstantAsMillis;
-                    chatManager.send("ping.chat", difference);
+                    chatController.send("ping.chat", difference);
                     return true;
                 }
                 return false;

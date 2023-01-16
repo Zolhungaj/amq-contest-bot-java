@@ -15,11 +15,11 @@ import java.util.stream.Stream;
 
 @Slf4j
 @Component
-public class ChatManager {
+public class ChatController {
     private static final int MESSAGE_LIMIT = 150;
     private final ApiManager api;
     private final ConcurrentLinkedQueue<String> pendingMessages = new ConcurrentLinkedQueue<>();
-    public ChatManager(@Autowired ApiManager api){
+    public ChatController(@Autowired ApiManager api){
         this.api = api;
     }
 

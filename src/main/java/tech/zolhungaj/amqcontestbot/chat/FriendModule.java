@@ -7,9 +7,9 @@ import tech.zolhungaj.amqapi.servercommands.social.FriendRequestReceived;
 import tech.zolhungaj.amqcontestbot.ApiManager;
 
 @Component
-public class SocialManager {
+public class FriendModule {
 
-    public SocialManager(@Autowired ApiManager api, @Autowired ChatCommands chatCommands){
+    public FriendModule(@Autowired ApiManager api, @Autowired ChatCommands chatCommands){
         api.on(command -> {
             if(command instanceof FriendRequestReceived friendRequestReceived){
                 api.sendCommand(new FriendRequestResponse(friendRequestReceived.playerName(), true));
