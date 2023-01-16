@@ -17,4 +17,8 @@ public class PlayerService {
     public boolean isModerator(String trueName){
         return false;//TODO:implement
     }
+
+    public Object getPlayer(String trueName){
+        return new Object();
+    }
 }

@@ -102,7 +102,7 @@ public class PunishmentManager {
 
     private void ban(String nickname){
         kick(nickname);
-        String trueName = nameResolver.getTrueName(nickname);
+        String trueName = nameResolver.getTrueNameBlocking(nickname);
         banByTrueName(trueName);
     }
     private void banByTrueName(String trueName){
@@ -111,7 +111,7 @@ public class PunishmentManager {
         }
     }
     private void unban(String nickname){
-        String trueName = nameResolver.getTrueName(nickname);
+        String trueName = nameResolver.getTrueNameBlocking(nickname);
         unbanByTrueName(trueName);
         unkick(nickname);
     }
@@ -121,7 +121,7 @@ public class PunishmentManager {
     }
 
     public void kick(String nickname){
-        String trueName = nameResolver.getTrueName(nickname);
+        String trueName = nameResolver.getTrueNameBlocking(nickname);
         if(!playerService.isModerator(trueName)){
             kickedThisSession.add(trueName);
             kickInternal(nickname);
@@ -129,12 +129,12 @@ public class PunishmentManager {
     }
 
     private void unkick(String nickname){
-        String trueName = nameResolver.getTrueName(nickname);
+        String trueName = nameResolver.getTrueNameBlocking(nickname);
         this.kickedThisSession.remove(trueName);
     }
 
     private void handleJoin(String nickname){
-        String trueName = nameResolver.getTrueName(nickname);
+        String trueName = nameResolver.getTrueNameBlocking(nickname);
         if(kickedThisSession.contains(trueName) || playerService.isBanned(trueName)){
             kickInternal(nickname);
         }

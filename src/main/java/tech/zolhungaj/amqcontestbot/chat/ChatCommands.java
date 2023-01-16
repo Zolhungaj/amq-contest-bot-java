@@ -1,6 +1,7 @@
 package tech.zolhungaj.amqcontestbot.chat;
 
 import lombok.NonNull;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -9,8 +10,13 @@ import tech.zolhungaj.amqapi.servercommands.gameroom.GameChatUpdate;
 import tech.zolhungaj.amqcontestbot.ApiManager;
 
 import java.util.*;
+import java.util.concurrent.Executor;
+import java.util.concurrent.Executors;
 import java.util.function.BiConsumer;
 
+/**Owner of all chat commands.
+ * Chat commands are guaranteed to be executed in series, and should use blocking calls.
+ */
 @Slf4j
 @Component
 public class ChatCommands {
@@ -19,6 +25,8 @@ public class ChatCommands {
     private static final List<String> ILLEGAL_COMMAND_PREFIXES = List.of("o\\", "O\\", "0\\");
     private static final String UNKNOWN_COMMAND_I18N_NAME = "error_command_unknown";
     private final Map<String, Command> registeredCommands = new HashMap<>();
+
+    private final Executor executor = Executors.newSingleThreadExecutor();
 
     private final ChatController chatController;
 
@@ -71,15 +79,11 @@ public class ChatCommands {
     }
 
     private void handleCommand(@NonNull String message, @NonNull String sender){
-        List<String> splitCommand = new ArrayList<>(List.of(message.split(" +")));
-        String commandName = splitCommand.remove(0);
+        List<String> arguments = new ArrayList<>(List.of(message.split(" +")));
+        String commandName = arguments.remove(0);
         Command command = registeredCommands.get(commandName);
         if(command != null){
-            try{
-                command.handler().accept(sender, splitCommand);
-            }catch(IllegalArgumentException e){
-                chatController.send(command.i18nCanonicalNameUsage(), e.getMessage());
-            }
+            executor.execute(new CommandHandler(command, sender, arguments));
         }else{
             chatController.send(UNKNOWN_COMMAND_I18N_NAME);
         }
@@ -139,8 +143,21 @@ public class ChatCommands {
     }
 
 
+    @RequiredArgsConstructor
+    private class CommandHandler implements Runnable{
 
-
+        private final Command command;
+        private final String sender;
+        private final List<String> arguments;
+        @Override
+        public void run() {
+            try{
+                command.handler().accept(sender, arguments);
+            }catch(IllegalArgumentException e){
+                chatController.send(command.i18nCanonicalNameUsage(), e.getMessage());
+            }
+        }
+    }
 
     private record Command(
             @NonNull String commandName,

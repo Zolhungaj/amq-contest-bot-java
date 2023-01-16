@@ -36,6 +36,7 @@ public class ChatController {
         return sendRaw(message);
     }
     public List<String> sendRaw(String message){
+        message = selfCensor(message);
         final List<String> messageChunked;
         if(message.length() <= MESSAGE_LIMIT){
             messageChunked = List.of(message);
@@ -88,5 +89,9 @@ public class ChatController {
             api.sendCommand(new EmptyClientCommand(ClientCommandType.START_TRACKING_ONLINE_USERS) {
             });
         }
+    }
+
+    private String selfCensor(String message){
+        return message.replace("ROBOT", "MACHINE");//TODO:implement censoring preventing certain phrases from being spoken
     }
 }
