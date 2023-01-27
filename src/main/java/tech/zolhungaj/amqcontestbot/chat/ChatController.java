@@ -4,8 +4,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
-import tech.zolhungaj.amqapi.clientcommands.ClientCommandType;
-import tech.zolhungaj.amqapi.clientcommands.EmptyClientCommand;
+import tech.zolhungaj.amqapi.clientcommands.lobby.SendMessage;
 import tech.zolhungaj.amqcontestbot.ApiManager;
 
 import java.util.ArrayList;
@@ -85,9 +84,7 @@ public class ChatController {
     private void sendMessage(){
         String nextMessage = pendingMessages.poll();
         if(nextMessage != null){
-            //TODO: once send message is implemented in API
-            api.sendCommand(new EmptyClientCommand(ClientCommandType.START_TRACKING_ONLINE_USERS) {
-            });
+            api.sendCommand(SendMessage.builder().message(nextMessage).build());
         }
     }
 

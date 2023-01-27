@@ -2,6 +2,7 @@ package tech.zolhungaj.amqcontestbot.moderation;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+import tech.zolhungaj.amqapi.clientcommands.lobby.Kick;
 import tech.zolhungaj.amqapi.servercommands.gameroom.SpectatorJoined;
 import tech.zolhungaj.amqcontestbot.ApiManager;
 import tech.zolhungaj.amqcontestbot.chat.ChatCommands;
@@ -141,7 +142,6 @@ public class PunishmentManager {
     }
 
     private void kickInternal(String nickname){
-        //TODO:implement once API has the command
-        //this.api.sendCommand();
+        this.api.sendCommand(new Kick(nickname));
     }
 }
