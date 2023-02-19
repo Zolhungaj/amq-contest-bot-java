@@ -1,9 +1,11 @@
 package tech.zolhungaj.amqcontestbot.gamemode;
 
+import tech.zolhungaj.amqapi.sharedobjects.gamesettings.GameSettings;
+
 import java.util.Collection;
 
 public sealed interface GameMode permits AbstractGameMode{
-    Object getNextSettings();
+    GameSettings getNextSettings();
     void start(Collection<String> players);
     void score(Collection<Object> scoreObjects);
     Collection<PlayerScore> finish();
