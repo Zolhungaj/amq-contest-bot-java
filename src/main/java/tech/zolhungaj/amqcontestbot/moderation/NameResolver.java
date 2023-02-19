@@ -15,10 +15,15 @@ public class NameResolver {
         this.api = api;
     }
 
+    /**
+     * For general usage, most players will have already been resolved by Welcome and PunishmentManager
+     * */
     public String getTrueNameBlocking(String nickname){
         return nickname; //TODO: implement
     }
 
+    /**
+     * For usage where there is a chance that the accessed player is not yet present*/
     public CompletableFuture<String> getTrueName(String nickname){
         CompletableFuture<String> future = new CompletableFuture<>();
         future.completeAsync(() -> getTrueNameBlocking(nickname));

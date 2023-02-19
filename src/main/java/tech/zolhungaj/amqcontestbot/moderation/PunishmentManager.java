@@ -3,11 +3,13 @@ package tech.zolhungaj.amqcontestbot.moderation;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import tech.zolhungaj.amqapi.clientcommands.lobby.Kick;
+import tech.zolhungaj.amqapi.servercommands.gameroom.NewPlayer;
 import tech.zolhungaj.amqapi.servercommands.gameroom.SpectatorJoined;
 import tech.zolhungaj.amqcontestbot.ApiManager;
 import tech.zolhungaj.amqcontestbot.chat.ChatCommands;
 import tech.zolhungaj.amqcontestbot.repository.PlayerService;
 
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -17,7 +19,7 @@ public class PunishmentManager {
     private final NameResolver nameResolver;
     private final PlayerService playerService;
 
-    private final Set<String> kickedThisSession = new HashSet<>();
+    private final Set<String> kickedThisSession = Collections.synchronizedSet(new HashSet<>());
 
     public PunishmentManager(@Autowired ApiManager api,
                              @Autowired NameResolver nameResolver,
@@ -30,7 +32,9 @@ public class PunishmentManager {
             if(command instanceof SpectatorJoined spectatorJoined){
                 handleJoin(spectatorJoined.playerName());
             }
-            //TODO: PlayerJoined
+            if(command instanceof NewPlayer newPlayer){
+                handleJoin(newPlayer.playerName());
+            }
             return true;
         });
         this.registerBanCommands(chatCommands);
@@ -103,8 +107,7 @@ public class PunishmentManager {
 
     private void ban(String nickname){
         kick(nickname);
-        String trueName = nameResolver.getTrueNameBlocking(nickname);
-        banByTrueName(trueName);
+        nameResolver.getTrueName(nickname).thenAccept(this::banByTrueName);
     }
     private void banByTrueName(String trueName){
         if(!playerService.isModerator(trueName)){
@@ -122,23 +125,25 @@ public class PunishmentManager {
     }
 
     public void kick(String nickname){
-        String trueName = nameResolver.getTrueNameBlocking(nickname);
-        if(!playerService.isModerator(trueName)){
-            kickedThisSession.add(trueName);
-            kickInternal(nickname);
-        }
+        nameResolver.getTrueName(nickname)
+                .thenAccept(trueName -> {
+                    if(!playerService.isModerator(trueName)){
+                        kickedThisSession.add(trueName);
+                        kickInternal(nickname);
+                    }
+                });
     }
 
     private void unkick(String nickname){
-        String trueName = nameResolver.getTrueNameBlocking(nickname);
-        this.kickedThisSession.remove(trueName);
+        nameResolver.getTrueName(nickname).thenAccept(kickedThisSession::remove);
     }
 
     private void handleJoin(String nickname){
-        String trueName = nameResolver.getTrueNameBlocking(nickname);
-        if(kickedThisSession.contains(trueName) || playerService.isBanned(trueName)){
-            kickInternal(nickname);
-        }
+        nameResolver.getTrueName(nickname).thenAccept(trueName -> {
+            if(kickedThisSession.contains(trueName) || playerService.isBanned(trueName)){
+                kickInternal(nickname);
+            }
+        });
     }
 
     private void kickInternal(String nickname){
