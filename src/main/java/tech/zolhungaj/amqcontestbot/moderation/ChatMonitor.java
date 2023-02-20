@@ -21,7 +21,6 @@ public class ChatMonitor {
         this.punishmentManager = punishmentManager;
         bannedPhrases = Set.of();
         api.on(command -> {
-            log.info("ChatMonitor received {}", command);
             if(command instanceof GameChatMessage gameChatMessage){
                 this.handleMessage(gameChatMessage);
             }else if (command instanceof GameChatUpdate gameChatUpdate){

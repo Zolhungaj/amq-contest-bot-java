@@ -12,6 +12,7 @@ public class ApiManager {
     private final AmqApi api;
     private String selfName;
     public ApiManager(@Autowired ApiConfiguration configuration){
+        this.api = new AmqApi(configuration.getUsername(), configuration.getPassword(), configuration.isForceConnect());
         this.on(command -> {
             if(command instanceof LoginComplete loginComplete){
                 selfName = loginComplete.selfName();
@@ -19,7 +20,6 @@ public class ApiManager {
             }
             return false;
         });
-        this.api = new AmqApi(configuration.getUsername(), configuration.getPassword(), configuration.isForceConnect());
     }
 
     public void on(EventHandler handler){
