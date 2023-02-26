@@ -3,12 +3,12 @@ package tech.zolhungaj.amqcontestbot.moderation;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import tech.zolhungaj.amqcontestbot.ApiManager;
+import tech.zolhungaj.amqcontestbot.Util;
 
 import java.util.concurrent.CompletableFuture;
 
 @Component
 public class NameResolver {
-
     private final ApiManager api;
 
     public NameResolver(@Autowired ApiManager api) {
@@ -19,6 +19,10 @@ public class NameResolver {
      * For general usage, most players will have already been resolved by Welcome and PunishmentManager
      * */
     public String getTrueNameBlocking(String nickname){
+        if(Util.isGuest(nickname)){
+            //guests never have nicknames, and the profile lookup for guests is slow
+            return nickname;
+        }
         return nickname; //TODO: implement
     }
 

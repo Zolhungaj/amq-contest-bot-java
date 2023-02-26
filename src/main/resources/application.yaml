@@ -1,0 +1,11 @@
+api:
+  username: USERNAME
+  password: PASSWORD
+  forceConnect: true
+bot:
+  level-guard:
+    enabled: false
+    warning-limit: 3
+    allow-guests: true
+    min-level: 0
+    max-level: 9001

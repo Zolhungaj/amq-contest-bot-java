@@ -33,7 +33,6 @@ public class ChatCommands {
     public ChatCommands(@Autowired ApiManager api, @Autowired ChatController chatController){
         this.chatController = chatController;
         api.on(command -> {
-            log.info("ChatCommand received: {}", command);
             if(command instanceof GameChatMessage gameChatMessage){
                 this.handleMessage(gameChatMessage);
             }else if (command instanceof GameChatUpdate gameChatUpdate){
