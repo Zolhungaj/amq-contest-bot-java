@@ -1,6 +1,7 @@
 package tech.zolhungaj.amqcontestbot.moderation;
 
-import org.springframework.beans.factory.annotation.Autowired;
+import jakarta.annotation.PostConstruct;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import tech.zolhungaj.amqapi.clientcommands.lobby.Kick;
 import tech.zolhungaj.amqapi.servercommands.gameroom.NewPlayer;
@@ -14,21 +15,18 @@ import java.util.HashSet;
 import java.util.Set;
 
 @Component
+@RequiredArgsConstructor
 public class PunishmentManager {
     private final ApiManager api;
     private final NameResolver nameResolver;
     private final PlayerService playerService;
+    private final ChatCommands chatCommands;
 
     private final Set<String> kickedThisSession = Collections.synchronizedSet(new HashSet<>());
 
-    public PunishmentManager(@Autowired ApiManager api,
-                             @Autowired NameResolver nameResolver,
-                             @Autowired PlayerService playerService,
-                             @Autowired ChatCommands chatCommands){
-        this.api = api;
-        this.nameResolver = nameResolver;
-        this.playerService = playerService;
-        this.api.on(command -> {
+    @PostConstruct
+    public void init(){
+        api.on(command -> {
             if(command instanceof SpectatorJoined spectatorJoined){
                 handleJoin(spectatorJoined.playerName());
             }
@@ -37,12 +35,12 @@ public class PunishmentManager {
             }
             return true;
         });
-        this.registerBanCommands(chatCommands);
-        this.registerBanTrueCommands(chatCommands);
-        this.registerKickCommands(chatCommands);
+        registerBanCommands();
+        registerBanTrueCommands();
+        registerKickCommands();
     }
 
-    private void registerBanCommands(ChatCommands chatCommands){
+    private void registerBanCommands(){
         chatCommands.register((sender, arguments) -> {
             if(arguments.size() != 1){
                 throw new IllegalArgumentException();
@@ -63,7 +61,7 @@ public class PunishmentManager {
         }, "unban");
     }
 
-    private void registerBanTrueCommands(ChatCommands chatCommands){
+    private void registerBanTrueCommands(){
         chatCommands.register((sender, arguments) -> {
             if(arguments.size() != 1){
                 throw new IllegalArgumentException();
@@ -84,7 +82,7 @@ public class PunishmentManager {
         }, "unbantrue");
     }
 
-    private void registerKickCommands(ChatCommands chatCommands){
+    private void registerKickCommands(){
         chatCommands.register((sender, arguments) -> {
             if(arguments.size() != 1){
                 throw new IllegalArgumentException();
@@ -107,7 +105,8 @@ public class PunishmentManager {
 
     private void ban(String nickname){
         kick(nickname);
-        nameResolver.getTrueName(nickname).thenAccept(this::banByTrueName);
+        nameResolver.getTrueName(nickname)
+                .thenAccept(this::banByTrueName);
     }
     private void banByTrueName(String trueName){
         if(!playerService.isModerator(trueName)){
@@ -115,9 +114,9 @@ public class PunishmentManager {
         }
     }
     private void unban(String nickname){
-        String trueName = nameResolver.getTrueNameBlocking(nickname);
-        unbanByTrueName(trueName);
         unkick(nickname);
+        nameResolver.getTrueName(nickname)
+                .thenAccept(this::unbanByTrueName);
     }
 
     private void unbanByTrueName(String trueName){
@@ -147,6 +146,6 @@ public class PunishmentManager {
     }
 
     private void kickInternal(String nickname){
-        this.api.sendCommand(new Kick(nickname));
+        api.sendCommand(new Kick(nickname));
     }
 }
