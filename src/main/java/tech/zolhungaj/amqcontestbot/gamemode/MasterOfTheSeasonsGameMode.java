@@ -38,7 +38,7 @@ public class MasterOfTheSeasonsGameMode extends AbstractSpeedRunGameMode {
         }else{
             season = "X";
         }
-        String roomName = "MasterOfTheSeason" + year + season;
+        String roomName = "MasterOfTheSeason%02d%s".formatted(year, season);
         return BASE_GAME_SETTINGS.toBuilder()
                 .vintage(vintage)
                 .roomName(roomName)
