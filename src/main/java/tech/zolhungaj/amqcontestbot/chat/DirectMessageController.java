@@ -1,5 +1,6 @@
 package tech.zolhungaj.amqcontestbot.chat;
 
+import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -18,8 +19,27 @@ import static tech.zolhungaj.amqcontestbot.Util.chunkMessageToFitLimits;
 public class DirectMessageController {
     public static final int MESSAGE_LIMIT = 200;
     private final ApiManager api;
+    private final ChatController chatController;
+    private final FriendModule friendModule;
     private final MessageService messageService;
     private final ConcurrentLinkedQueue<DM> pendingMessages = new ConcurrentLinkedQueue<>();
+
+    @PostConstruct
+    public void init(){
+        api.on(command -> {
+            if(false){// command instanceof NewChatAlert
+                String alert = "";
+                String name = "";
+                if(alert.equals("Must be Level 20 to Message non Friends")){
+                    friendModule.sendFriendRequest(name);
+                    chatController.send("dm.error.must-be-friends", name);
+                    pendingMessages.removeIf(dm -> dm.recipient.equals(name));
+                }
+                return true;
+            }
+            return false;
+        });
+    }
 
     public List<DM> send(String recipient, String i18nCanonicalName, Object... arguments){
         return send(recipient, i18nCanonicalName, List.of(arguments));
