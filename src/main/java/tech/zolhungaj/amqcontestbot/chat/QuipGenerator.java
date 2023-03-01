@@ -2,8 +2,6 @@ package tech.zolhungaj.amqcontestbot.chat;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-import tech.zolhungaj.amqcontestbot.moderation.NameResolver;
-import tech.zolhungaj.amqcontestbot.repository.PlayerService;
 
 import java.util.random.RandomGenerator;
 
@@ -16,8 +14,6 @@ public class QuipGenerator {
     private final RandomGenerator randomGenerator = RandomGenerator.of("L64X128MixRandom");
     private final ChatController chatController;
     public QuipGenerator(@Autowired ChatCommands chatCommands,
-                         @Autowired PlayerService playerService,
-                         @Autowired NameResolver nameResolver,
                          @Autowired ChatController chatController){
         this.chatController = chatController;
         chatCommands.register((sender, arguments) -> {
@@ -27,10 +23,8 @@ public class QuipGenerator {
             }else{
                 throw new IllegalArgumentException();
             }
-            if(playerService.isModerator(nameResolver.getTrueNameBlocking(sender))){
-                chattiness = value;
-            }
-        }, "setchattiness");
+            chattiness = value;
+        }, ChatCommands.Grant.MODERATOR, "setchattiness");
     }
 
     private void quipPlaceholder(){

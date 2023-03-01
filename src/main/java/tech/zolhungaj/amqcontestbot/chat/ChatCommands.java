@@ -8,6 +8,8 @@ import org.springframework.stereotype.Component;
 import tech.zolhungaj.amqapi.servercommands.gameroom.GameChatMessage;
 import tech.zolhungaj.amqapi.servercommands.gameroom.GameChatUpdate;
 import tech.zolhungaj.amqcontestbot.ApiManager;
+import tech.zolhungaj.amqcontestbot.moderation.NameResolver;
+import tech.zolhungaj.amqcontestbot.repository.PlayerService;
 
 import java.util.*;
 import java.util.concurrent.Executor;
@@ -30,6 +32,8 @@ public class ChatCommands {
     private final Executor executor = Executors.newSingleThreadExecutor();
 
     private final ChatController chatController;
+    private final NameResolver nameResolver;
+    private final PlayerService playerService;
     private final ApiManager api;
 
     public void register(BiConsumer<String, List<String>> handler, String primaryCommandName, String... aliases){
@@ -37,6 +41,14 @@ public class ChatCommands {
     }
 
     public void register(BiConsumer<String, List<String>> handler, String primaryCommandName, List<String> aliases){
+        this.register(handler, Grant.NONE, primaryCommandName, aliases);
+    }
+
+    public void register(BiConsumer<String, List<String>> handler, Grant grant, String primaryCommandName, String... aliases){
+        this.register(handler, grant, primaryCommandName, List.of(aliases));
+    }
+
+    public void register(BiConsumer<String, List<String>> handler, Grant grant, String primaryCommandName, List<String> aliases){
         List<String> commandNames = new ArrayList<>();
         commandNames.add(primaryCommandName);
         commandNames.addAll(aliases);
@@ -53,7 +65,7 @@ public class ChatCommands {
             //prevent dumb mistakes in command naming
             throw new IllegalArgumentException("Commands '" + String.join("', '", repeats) + "' are already defined");
         }
-        Command command = new Command(primaryCommandName, handler, aliases);
+        Command command = new Command(primaryCommandName, grant, handler, aliases);
         commandNames.forEach(commandName -> registeredCommands.put(commandName, command));
     }
 
@@ -152,7 +164,26 @@ public class ChatCommands {
         @Override
         public void run() {
             try{
-                command.handler().accept(sender, arguments);
+                switch(command.grant()){
+                    case NONE -> command.handler().accept(sender, arguments);
+                    case MODERATOR -> {
+                        String trueName = nameResolver.getTrueNameBlocking(sender);
+                        if(playerService.isModerator(trueName) || playerService.isAdmin(trueName)){
+                            command.handler().accept(sender, arguments);
+                        }else{
+                            throw new IllegalArgumentException("Must be moderator");
+                        }
+                    }
+                    case ADMIN -> {
+                        String trueName = nameResolver.getTrueNameBlocking(sender);
+                        if(playerService.isAdmin(trueName)){
+                            command.handler().accept(sender, arguments);
+                        }else{
+                            throw new IllegalArgumentException("Must be admin");
+                        }
+                    }
+                }
+
             }catch(IllegalArgumentException e){
                 chatController.send(command.i18nCanonicalNameUsage(), e.getMessage());
             }
@@ -161,6 +192,7 @@ public class ChatCommands {
 
     private record Command(
             @NonNull String commandName,
+            @NonNull Grant grant,
             @NonNull BiConsumer<String, List<String>> handler,
             @NonNull List<String> aliases){
         public String aliasesToString(){
@@ -175,5 +207,11 @@ public class ChatCommands {
         public String i18nCanonicalNameUsage(){
             return i18nCanonicalName().concat("_usage");
         }
+    }
+
+    public enum Grant{
+        NONE,
+        MODERATOR,
+        ADMIN
     }
 }

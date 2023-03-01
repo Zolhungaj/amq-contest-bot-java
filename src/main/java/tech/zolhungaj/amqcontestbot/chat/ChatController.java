@@ -7,8 +7,6 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import tech.zolhungaj.amqapi.clientcommands.lobby.SendMessage;
 import tech.zolhungaj.amqcontestbot.ApiManager;
-import tech.zolhungaj.amqcontestbot.moderation.NameResolver;
-import tech.zolhungaj.amqcontestbot.repository.PlayerService;
 
 import java.util.List;
 import java.util.concurrent.ConcurrentLinkedQueue;
@@ -22,20 +20,16 @@ public class ChatController {
     public static final int MESSAGE_LIMIT = 150;
     private final ApiManager api;
     private final ChatCommands chatCommands;
-    private final NameResolver nameResolver;
-    private final PlayerService playerService;
     private final MessageService messageService;
     private final ConcurrentLinkedQueue<String> pendingMessages = new ConcurrentLinkedQueue<>();
 
     @PostConstruct
     public void init(){
-        chatCommands.register((sender, arguments) ->
-            nameResolver.getTrueName(sender).thenAccept(trueName -> {
-                if(playerService.isAdmin(trueName)){
-                    sendRaw(String.join(" ", arguments));
-                }
-            })
-        , "say");
+        chatCommands.register(
+                (sender, arguments) -> sendRaw(String.join(" ", arguments)),
+                ChatCommands.Grant.ADMIN,
+                "say"
+        );
     }
 
     public List<String> send(String i18nCanonicalName, Object... arguments){

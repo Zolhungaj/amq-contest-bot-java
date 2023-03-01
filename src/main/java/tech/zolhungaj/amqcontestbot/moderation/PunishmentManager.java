@@ -46,19 +46,15 @@ public class PunishmentManager {
                 throw new IllegalArgumentException();
             }
             String nickname = arguments.get(0);
-            if(playerService.isModerator(sender)){
-                ban(nickname);
-            }
-        }, "ban");
+            ban(nickname);
+        }, ChatCommands.Grant.MODERATOR, "ban");
         chatCommands.register((sender, arguments) -> {
             if(arguments.size() != 1){
                 throw new IllegalArgumentException();
             }
             String nickname = arguments.get(0);
-            if(playerService.isModerator(sender)){
-                unban(nickname);
-            }
-        }, "unban");
+            unban(nickname);
+        }, ChatCommands.Grant.MODERATOR, "unban");
     }
 
     private void registerBanTrueCommands(){
@@ -67,19 +63,15 @@ public class PunishmentManager {
                 throw new IllegalArgumentException();
             }
             String trueName = arguments.get(0);
-            if(playerService.isModerator(sender)){
-                banByTrueName(trueName);
-            }
-        }, "bantrue");
+            banByTrueName(trueName);
+        }, ChatCommands.Grant.MODERATOR, "bantrue");
         chatCommands.register((sender, arguments) -> {
             if(arguments.size() != 1){
                 throw new IllegalArgumentException();
             }
             String trueName = arguments.get(0);
-            if(playerService.isModerator(sender)){
-                unbanByTrueName(trueName);
-            }
-        }, "unbantrue");
+            unbanByTrueName(trueName);
+        }, ChatCommands.Grant.MODERATOR,"unbantrue");
     }
 
     private void registerKickCommands(){
@@ -88,19 +80,15 @@ public class PunishmentManager {
                 throw new IllegalArgumentException();
             }
             String nickname = arguments.get(0);
-            if(playerService.isModerator(sender)){
-                kick(nickname);
-            }
-        }, "kick", "yeet");
+            kick(nickname);
+        }, ChatCommands.Grant.MODERATOR, "kick", "yeet");
         chatCommands.register((sender, arguments) -> {
             if(arguments.size() != 1){
                 throw new IllegalArgumentException();
             }
             String nickname = arguments.get(0);
-            if(playerService.isModerator(sender)){
-                unkick(nickname);
-            }
-        }, "unkick", "unyeet");
+            unkick(nickname);
+        }, ChatCommands.Grant.MODERATOR, "unkick", "unyeet");
     }
 
     private void ban(String nickname){
