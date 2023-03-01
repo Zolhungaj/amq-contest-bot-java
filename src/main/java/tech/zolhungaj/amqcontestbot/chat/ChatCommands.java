@@ -1,9 +1,9 @@
 package tech.zolhungaj.amqcontestbot.chat;
 
+import jakarta.annotation.PostConstruct;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import tech.zolhungaj.amqapi.servercommands.gameroom.GameChatMessage;
 import tech.zolhungaj.amqapi.servercommands.gameroom.GameChatUpdate;
@@ -19,29 +19,18 @@ import java.util.function.BiConsumer;
  */
 @Slf4j
 @Component
+@RequiredArgsConstructor
 public class ChatCommands {
     /** Forbidden command prefixes.
      * A couple common emojis that start with the forward slash */
     private static final List<String> ILLEGAL_COMMAND_PREFIXES = List.of("o\\", "O\\", "0\\");
-    private static final String UNKNOWN_COMMAND_I18N_NAME = "error_command_unknown";
+    private static final String UNKNOWN_COMMAND_I18N_NAME = "chat-commands.error.command-unknown";
     private final Map<String, Command> registeredCommands = new HashMap<>();
 
     private final Executor executor = Executors.newSingleThreadExecutor();
 
     private final ChatController chatController;
-
-    public ChatCommands(@Autowired ApiManager api, @Autowired ChatController chatController){
-        this.chatController = chatController;
-        api.on(command -> {
-            if(command instanceof GameChatMessage gameChatMessage){
-                this.handleMessage(gameChatMessage);
-            }else if (command instanceof GameChatUpdate gameChatUpdate){
-                gameChatUpdate.messages().forEach(this::handleMessage);
-            }
-            return true;
-        });
-        registerChatCommands();
-    }
+    private final ApiManager api;
 
     public void register(BiConsumer<String, List<String>> handler, String primaryCommandName, String... aliases){
         this.register(handler, primaryCommandName, List.of(aliases));
@@ -88,6 +77,19 @@ public class ChatCommands {
         }
     }
 
+    @PostConstruct
+    public void init(){
+        api.on(command -> {
+            if(command instanceof GameChatMessage gameChatMessage){
+                this.handleMessage(gameChatMessage);
+            }else if (command instanceof GameChatUpdate gameChatUpdate){
+                gameChatUpdate.messages().forEach(this::handleMessage);
+            }
+            return true;
+        });
+        registerChatCommands();
+    }
+
     private void registerChatCommands(){
         registerHelp();
         registerAlias();
@@ -106,17 +108,6 @@ public class ChatCommands {
         }, "help", "h");
     }
 
-    private void registerAlias(){
-        register((sender, arguments) -> {
-            if(arguments.size() == 1){
-                String argument = arguments.get(0);
-                listAliases(argument);
-            }else{
-                throw new IllegalArgumentException();
-            }
-        }, "alias");
-    }
-
     private void help(){
         Set<Command> commands = new HashSet<>(registeredCommands.values());
         List<String> commandNames = commands.stream().map(Command::commandName).toList();
@@ -132,6 +123,17 @@ public class ChatCommands {
         }
     }
 
+    private void registerAlias(){
+        register((sender, arguments) -> {
+            if(arguments.size() == 1){
+                String argument = arguments.get(0);
+                listAliases(argument);
+            }else{
+                throw new IllegalArgumentException();
+            }
+        }, "alias");
+    }
+
     private void listAliases(String commandName){
         Command command = registeredCommands.get(commandName);
         if(command != null){
@@ -140,7 +142,6 @@ public class ChatCommands {
             chatController.send(UNKNOWN_COMMAND_I18N_NAME);
         }
     }
-
 
     @RequiredArgsConstructor
     private class CommandHandler implements Runnable{
