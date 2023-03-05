@@ -18,6 +18,9 @@ public class PlayerService {
         return false;//TODO:implement
     }
     public boolean isAdmin(String trueName){
+        if("Zolhungaj".equals(trueName)){
+            return true; //TODO: remove lol
+        }
         return false;//TODO:implement
     }
 

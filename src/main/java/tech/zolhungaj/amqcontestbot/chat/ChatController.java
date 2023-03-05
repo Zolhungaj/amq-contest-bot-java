@@ -1,6 +1,5 @@
 package tech.zolhungaj.amqcontestbot.chat;
 
-import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -19,18 +18,8 @@ import static tech.zolhungaj.amqcontestbot.Util.chunkMessageToFitLimits;
 public class ChatController {
     public static final int MESSAGE_LIMIT = 150;
     private final ApiManager api;
-    private final ChatCommands chatCommands;
     private final MessageService messageService;
     private final ConcurrentLinkedQueue<String> pendingMessages = new ConcurrentLinkedQueue<>();
-
-    @PostConstruct
-    public void init(){
-        chatCommands.register(
-                (sender, arguments) -> sendRaw(String.join(" ", arguments)),
-                ChatCommands.Grant.ADMIN,
-                "say"
-        );
-    }
 
     public List<String> send(String i18nCanonicalName, Object... arguments){
         return send(i18nCanonicalName, List.of(arguments));

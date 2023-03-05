@@ -185,7 +185,7 @@ public class ChatCommands {
                 }
 
             }catch(IllegalArgumentException e){
-                chatController.send(command.i18nCanonicalNameUsage(), e.getMessage());
+                chatController.send(command.i18nCanonicalNameUsage(), Objects.requireNonNullElse(e.getMessage(), ""));
             }
         }
     }

@@ -1,6 +1,7 @@
 package tech.zolhungaj.amqcontestbot.chat;
 
-import org.springframework.beans.factory.annotation.Autowired;
+import jakarta.annotation.PostConstruct;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import tech.zolhungaj.amqapi.servercommands.gameroom.GameChatMessage;
 import tech.zolhungaj.amqapi.servercommands.gameroom.GameChatUpdate;
@@ -10,19 +11,17 @@ import java.time.Instant;
 import java.util.function.Predicate;
 
 @Component
+@RequiredArgsConstructor
 public class UtilityCommands {
 
     private final ApiManager api;
     private final ChatCommands chatCommands;
     private final ChatController chatController;
 
-    public UtilityCommands(@Autowired ApiManager api,
-                           @Autowired ChatCommands chatCommands,
-                           @Autowired ChatController chatController){
-        this.api = api;
-        this.chatCommands = chatCommands;
-        this.chatController = chatController;
+    @PostConstruct
+    public void init(){
         registerPing();
+        registerSay();
     }
 
     private void registerPing(){
@@ -51,5 +50,13 @@ public class UtilityCommands {
                 return false;
             });
         }, "ping");
+    }
+
+    private void registerSay(){
+        chatCommands.register(
+                (sender, arguments) -> chatController.sendRaw(String.join(" ", arguments)),
+                ChatCommands.Grant.ADMIN,
+                "say"
+        );
     }
 }
