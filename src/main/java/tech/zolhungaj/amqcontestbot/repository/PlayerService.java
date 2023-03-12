@@ -24,6 +24,22 @@ public class PlayerService {
         return false;//TODO:implement
     }
 
+    public void addAdmin(String source, String newAdmin){
+        //TODO: implement
+    }
+
+    public void removeAdmin(String remover, String admin){
+        //TODO: implement
+    }
+
+    public void addModerator(String source, String newModerator){
+        //TODO: implement
+    }
+
+    public void removeModerator(String remover, String moderator){
+        //TODO: implement
+    }
+
     public Object getPlayer(String trueName){
         return new Object();
     }
