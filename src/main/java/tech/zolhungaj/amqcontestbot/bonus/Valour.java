@@ -32,15 +32,15 @@ public class Valour {
         if(doubleValue < 0){
             //handle negative numbers
             output.append("÷");
-            doubleValue *= -1;
         }
-        int remainder = (int) Math.abs(Math.round((doubleValue - Math.floor(doubleValue))*12)); //should be a number in the range 0-12
+        doubleValue = Math.abs(doubleValue);
+        int remainder = (int) Math.round((doubleValue - Math.floor(doubleValue))*12); //should be a number in the range 0-12
         int value = (int) Math.floor(doubleValue);
         if(remainder == 12){
             value++;
             remainder = 0;
         }
-        if(Math.abs(value) > 3999){
+        if(value > 3999){
             //not super keen on supporting non-standard roman numerals, so I just give the non-standard 100k here.
             return output.append("ↈ").toString();
         }
