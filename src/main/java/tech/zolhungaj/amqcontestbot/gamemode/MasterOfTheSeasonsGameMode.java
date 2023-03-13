@@ -28,15 +28,15 @@ public class MasterOfTheSeasonsGameMode extends AbstractSpeedRunGameMode {
         int seasonValue = vintage.seasonRange().seasons().get(0);
         final String season;
         if(seasonValue == Vintage.Season.WINTER.value){
-            season = "W";
+            season = "冬";
         }else if(seasonValue == Vintage.Season.SPRING.value){
-            season = "V";
+            season = "春";
         }else if(seasonValue == Vintage.Season.SUMMER.value){
-            season = "S";
+            season = "夏";
         }else if(seasonValue == Vintage.Season.AUTUMN.value){
-            season = "F";
+            season = "秋";
         }else{
-            season = "X";
+            season = "憂";
         }
         String roomName = "MasterOfTheSeason%02d%s".formatted(year, season);
         return BASE_GAME_SETTINGS.toBuilder()
