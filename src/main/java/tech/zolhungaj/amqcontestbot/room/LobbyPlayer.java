@@ -7,9 +7,10 @@ import java.util.Optional;
 @With
 public record LobbyPlayer(
         String playerName,
-        Integer gamePlayerId,
+        int gamePlayerId,
         boolean isReady,
         boolean inLobby,
-        Optional<Integer> teamNumber
+        Optional<Integer> teamNumber,
+        int consecutiveGames
 ) {
 }

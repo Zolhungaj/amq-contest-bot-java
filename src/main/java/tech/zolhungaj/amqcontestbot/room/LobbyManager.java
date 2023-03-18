@@ -20,10 +20,9 @@ import tech.zolhungaj.amqcontestbot.chat.ChatController;
 import tech.zolhungaj.amqcontestbot.gamemode.GameMode;
 import tech.zolhungaj.amqcontestbot.gamemode.MasterOfTheSeasonsGameMode;
 
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
@@ -42,7 +41,10 @@ public class LobbyManager {
     private int counter = 0;
     private String selfName = "";
     private boolean inLobby = false;
+    private int gameId = -1;
     private final Map<Integer, LobbyPlayer> players = new ConcurrentHashMap<>();
+    private final Set<String> spectators = new HashSet<>();
+    private final Queue<String> queue = new ConcurrentLinkedQueue<>();
 
     @PostConstruct
     public void init(){
@@ -57,27 +59,35 @@ public class LobbyManager {
                         .map(this::newPlayerToLobbyPlayer)
                         .forEach(lobbyPlayer -> this.players.put(lobbyPlayer.gamePlayerId(), lobbyPlayer));
                 inLobby = true;
+                gameId = hostGame.gameId();
                 //TODO: move self to spectators //api.sendCommand(new );
             }else if(command instanceof NewPlayer newPlayer){
                 addPlayer(newPlayerToLobbyPlayer(newPlayer));
             }else if(command instanceof SpectatorChangedToPlayer spectatorChangedToPlayer){
                 addPlayer(playerToLobbyPlayer(spectatorChangedToPlayer));
+                removeSpectator(spectatorChangedToPlayer.getPlayerName());
             }else if(command instanceof PlayerLeft playerLeft){
                 int gamePlayerId = playerLeft.player().gamePlayerId().orElse(-1);
                 removePlayer(gamePlayerId);
             }else if(command instanceof PlayerChangedToSpectator toSpectator){
                 int gamePlayerId = toSpectator.playerDescription().gamePlayerId().orElse(-1);
                 removePlayer(gamePlayerId);
+                addSpectator(toSpectator.spectatorDescription().playerName());
             }else if(command instanceof PlayerReadyChange playerReadyChange){
                 this.players.computeIfPresent(playerReadyChange.gamePlayerId(), (key, player) -> player.withReady(playerReadyChange.ready()));
             }
             //TODO: trigger lock if Catbox is down
+            //TODO: queue
+            //TODO: game end or failed to open
+            //TODO: leave room
             return true;
         });
     }
 
     private void addPlayer(LobbyPlayer lobbyPlayer){
-        this.players.put(lobbyPlayer.gamePlayerId(), lobbyPlayer);
+        //get consecutiveGames in case somebody leaves and rejoins to reset their value
+        int consecutiveGames = this.players.getOrDefault(lobbyPlayer.gamePlayerId(), lobbyPlayer).consecutiveGames();
+        this.players.put(lobbyPlayer.gamePlayerId(), lobbyPlayer.withConsecutiveGames(consecutiveGames));
         log.info("{}", players);
     }
 
@@ -92,7 +102,8 @@ public class LobbyManager {
                 player.gamePlayerId(),
                 player.ready(),
                 true,
-                player.teamNumber());
+                player.teamNumber(),
+                0);
     }
 
     private LobbyPlayer playerToLobbyPlayer(Player player){
@@ -101,8 +112,26 @@ public class LobbyManager {
                 player.getGamePlayerId(),
                 player.getReady(),
                 true,
-                Optional.ofNullable(player.getTeamNumber()));
+                Optional.ofNullable(player.getTeamNumber()),
+                0);
     }
+
+    private void addSpectator(String playerName){
+        spectators.add(playerName);
+    }
+
+    private void removeSpectator(String playerName){
+        spectators.remove(playerName);
+    }
+
+    private void addToQueue(String playerName){
+        queue.add(playerName);
+    }
+
+    private void removeFromQueue(String playerName){
+        queue.removeIf(playerName::equals);
+    }
+
     @Scheduled(fixedRate = 1, timeUnit = TimeUnit.SECONDS)
     public void updateState(){
         if(!inLobby){
@@ -111,13 +140,13 @@ public class LobbyManager {
         }
         if(playerCount() == 0){
             counter = 0;
+            resetConsecutiveGames();
             return;
         }
-        if(startIfPossible()){
-            return;
+        if(!startIfPossible()){
+            sendCountdownBasedMessage();
+            counter++;
         }
-        sendRelevantMessage();
-        counter++;
     }
 
     private long playerCount(){
@@ -149,10 +178,11 @@ public class LobbyManager {
     private void start(){
         counter = 0;
         chatController.send("lobby.starting");
+        incrementConsecutiveGames();
         //TODO: start
     }
 
-    private void sendRelevantMessage(){
+    private void sendCountdownBasedMessage(){
         if(counter < WAIT_TIME){
             int diff = WAIT_TIME - counter;
             if(diff % 10 == 0){
@@ -172,5 +202,38 @@ public class LobbyManager {
             int diff = WAIT_TIME + SECONDARY_WAIT_TIME - counter;
             chatController.send("lobby.countdown.secondary", diff);
         }
+    }
+
+    private void resetConsecutiveGames(){
+        players.replaceAll((id, player) -> player.withConsecutiveGames(0));
+    }
+
+    private void incrementConsecutiveGames(){
+        players.replaceAll((id, player) -> {
+            if(player.inLobby()){
+                return player.withConsecutiveGames(player.consecutiveGames() + 1);
+            }else{
+                return player.withConsecutiveGames(0);
+            }
+        });
+    }
+
+    //TODO: hookup, should happen after players and queue has been updated after game
+    private void emptyQueueIfPossible(){
+        final List<LobbyPlayer> playersEligibleForChanging = new ArrayList<>(this.players.values().stream()
+                .filter(LobbyPlayer::inLobby)
+                .filter(player -> player.consecutiveGames() > 0) //don't move newly joined players
+                .toList());
+        Collections.shuffle(playersEligibleForChanging);//shuffle to make fair in ties
+        playersEligibleForChanging.stream()
+                .sorted(Comparator.comparingInt(LobbyPlayer::consecutiveGames)
+                        .reversed()) //those present for longer get moved first
+                .limit(queue.size())
+                .map(LobbyPlayer::playerName)
+                .forEach(this::moveToSpectator);
+    }
+
+    private void moveToSpectator(String playerName){
+
     }
 }
