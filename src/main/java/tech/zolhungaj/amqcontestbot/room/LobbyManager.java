@@ -60,7 +60,7 @@ public class LobbyManager {
                         .forEach(lobbyPlayer -> this.players.put(lobbyPlayer.gamePlayerId(), lobbyPlayer));
                 inLobby = true;
                 gameId = hostGame.gameId();
-                //TODO: move self to spectators //api.sendCommand(new );
+                moveToSpectator(selfName);
             }else if(command instanceof NewPlayer newPlayer){
                 addPlayer(newPlayerToLobbyPlayer(newPlayer));
             }else if(command instanceof SpectatorChangedToPlayer spectatorChangedToPlayer){
@@ -235,5 +235,14 @@ public class LobbyManager {
 
     private void moveToSpectator(String playerName){
 
+    }
+
+    private void leaveRoom(){
+        gameId = -1;
+        players.clear();
+        spectators.clear();
+        queue.clear();
+        inLobby = false;
+        counter = 0;
     }
 }
