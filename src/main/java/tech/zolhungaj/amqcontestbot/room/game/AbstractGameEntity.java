@@ -1,4 +1,4 @@
-package tech.zolhungaj.amqcontestbot.room;
+package tech.zolhungaj.amqcontestbot.room.game;
 
 import lombok.Getter;
 

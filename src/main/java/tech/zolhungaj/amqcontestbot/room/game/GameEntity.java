@@ -1,4 +1,4 @@
-package tech.zolhungaj.amqcontestbot.room;
+package tech.zolhungaj.amqcontestbot.room.game;
 
 public sealed interface GameEntity permits AbstractGameEntity {
     int getScore();

@@ -1,4 +1,4 @@
-package tech.zolhungaj.amqcontestbot.room;
+package tech.zolhungaj.amqcontestbot.room.lobby;
 
 import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
