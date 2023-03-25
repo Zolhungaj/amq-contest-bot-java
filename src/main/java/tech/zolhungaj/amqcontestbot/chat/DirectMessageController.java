@@ -5,6 +5,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
+import tech.zolhungaj.amqapi.clientcommands.social.SendDirectMessage;
 import tech.zolhungaj.amqcontestbot.ApiManager;
 
 import java.util.List;
@@ -27,7 +28,7 @@ public class DirectMessageController {
     @PostConstruct
     public void init(){
         api.on(command -> {
-            if(false){// command instanceof NewChatAlert
+            if(false){//TODO: command instanceof NewChatAlert
                 String alert = "";
                 String name = "";
                 if(alert.equals("Must be Level 20 to Message non Friends")){
@@ -61,7 +62,7 @@ public class DirectMessageController {
     private void sendMessage(){
         DM nextMessage = pendingMessages.poll();
         if(nextMessage != null){
-            //TODO: send once implemented in API
+            api.sendCommand(new SendDirectMessage(nextMessage.recipient, nextMessage.message));
         }
     }
 

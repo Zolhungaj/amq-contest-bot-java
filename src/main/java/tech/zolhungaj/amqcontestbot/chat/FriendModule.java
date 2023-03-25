@@ -3,7 +3,8 @@ package tech.zolhungaj.amqcontestbot.chat;
 import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
-import tech.zolhungaj.amqapi.clientcommands.friend.FriendRequestResponse;
+import tech.zolhungaj.amqapi.clientcommands.social.RespondToFriendRequest;
+import tech.zolhungaj.amqapi.clientcommands.social.SendFriendRequest;
 import tech.zolhungaj.amqapi.servercommands.social.FriendRequestReceived;
 import tech.zolhungaj.amqcontestbot.ApiManager;
 
@@ -25,10 +26,10 @@ public class FriendModule {
     }
 
     public void sendFriendRequest(String name){
-        //TODO: send friend request
+        api.sendCommand(new SendFriendRequest(name));
     }
 
     public void acceptFriendRequest(String name){
-        api.sendCommand(new FriendRequestResponse(name, true));
+        api.sendCommand(new RespondToFriendRequest(name, true));
     }
 }

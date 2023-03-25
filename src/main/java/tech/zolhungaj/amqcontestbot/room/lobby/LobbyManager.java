@@ -6,7 +6,9 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
-import tech.zolhungaj.amqapi.clientcommands.roombrowser.HostGame;
+import tech.zolhungaj.amqapi.clientcommands.lobby.MovePlayerToSpectator;
+import tech.zolhungaj.amqapi.clientcommands.lobby.StartGame;
+import tech.zolhungaj.amqapi.clientcommands.roombrowser.HostRoom;
 import tech.zolhungaj.amqapi.servercommands.gameroom.NewPlayer;
 import tech.zolhungaj.amqapi.servercommands.gameroom.PlayerLeft;
 import tech.zolhungaj.amqapi.servercommands.gameroom.lobby.PlayerChangedToSpectator;
@@ -52,7 +54,7 @@ public class LobbyManager {
             if(command instanceof LoginComplete loginComplete){
                 selfName = loginComplete.selfName();
                 currentSettings = gameMode.getNextSettings();
-                api.sendCommand(new HostGame(currentSettings));
+                api.sendCommand(new HostRoom(currentSettings));
             }else if(command instanceof tech.zolhungaj.amqapi.servercommands.gameroom.lobby.HostGame hostGame){
                 this.players.clear();
                 hostGame.players().stream()
@@ -179,7 +181,8 @@ public class LobbyManager {
         counter = 0;
         chatController.send("lobby.starting");
         incrementConsecutiveGames();
-        //TODO: start
+        api.sendCommand(new StartGame());
+        inLobby = false;
     }
 
     private void sendCountdownBasedMessage(){
@@ -234,7 +237,7 @@ public class LobbyManager {
     }
 
     private void moveToSpectator(String playerName){
-
+        api.sendCommand(new MovePlayerToSpectator(playerName));
     }
 
     private void leaveRoom(){

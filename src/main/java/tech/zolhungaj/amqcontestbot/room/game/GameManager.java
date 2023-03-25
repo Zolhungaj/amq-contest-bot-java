@@ -41,7 +41,8 @@ public class GameManager {
     }
 
     private void startGame(Object info){
-
+        reset();
+        inGame = true;
     }
 
     private void handleDisconnect(int gamePlayerId, boolean disconnected){

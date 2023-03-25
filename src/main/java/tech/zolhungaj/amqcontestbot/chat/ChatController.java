@@ -4,7 +4,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
-import tech.zolhungaj.amqapi.clientcommands.lobby.SendMessage;
+import tech.zolhungaj.amqapi.clientcommands.lobby.SendPublicChatMessage;
 import tech.zolhungaj.amqcontestbot.ApiManager;
 
 import java.util.List;
@@ -40,7 +40,7 @@ public class ChatController {
     private void sendMessage(){
         String nextMessage = pendingMessages.poll();
         if(nextMessage != null){
-            api.sendCommand(SendMessage.builder().message(nextMessage).build());
+            api.sendCommand(new SendPublicChatMessage(nextMessage));
         }
     }
 }

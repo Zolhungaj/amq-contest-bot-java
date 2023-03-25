@@ -6,6 +6,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Component;
 import tech.zolhungaj.amqapi.clientcommands.lobby.Kick;
+import tech.zolhungaj.amqapi.clientcommands.lobby.MovePlayerToSpectator;
 import tech.zolhungaj.amqapi.servercommands.gameroom.NewPlayer;
 import tech.zolhungaj.amqapi.servercommands.gameroom.lobby.SpectatorChangedToPlayer;
 import tech.zolhungaj.amqcontestbot.ApiManager;
@@ -59,6 +60,8 @@ public class LevelGuard {
         if(warningsIssued > warningLimit){
             api.sendCommand(new Kick(playerName));
             return;
+        }else{
+            api.sendCommand(new MovePlayerToSpectator(playerName));
         }
         switch(violation){
             case GUEST -> chatController.send("level-guard.warn.guest", playerName, warningsIssued, warningLimit);
