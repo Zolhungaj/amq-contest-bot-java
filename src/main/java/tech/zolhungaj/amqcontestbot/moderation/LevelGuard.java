@@ -39,7 +39,7 @@ public class LevelGuard {
                 onJoin(player.playerName(), player.level());
             }
             if(command instanceof SpectatorChangedToPlayer player){
-                onJoin(player.getPlayerName(), player.getLevel());
+                onJoin(player.playerName(), player.level());
             }
             return true;
         });

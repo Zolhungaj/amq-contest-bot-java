@@ -67,7 +67,7 @@ public class LobbyManager {
                 addPlayer(newPlayerToLobbyPlayer(newPlayer));
             }else if(command instanceof SpectatorChangedToPlayer spectatorChangedToPlayer){
                 addPlayer(playerToLobbyPlayer(spectatorChangedToPlayer));
-                removeSpectator(spectatorChangedToPlayer.getPlayerName());
+                removeSpectator(spectatorChangedToPlayer.playerName());
             }else if(command instanceof PlayerLeft playerLeft){
                 int gamePlayerId = playerLeft.player().gamePlayerId().orElse(-1);
                 removePlayer(gamePlayerId);
@@ -108,13 +108,13 @@ public class LobbyManager {
                 0);
     }
 
-    private LobbyPlayer playerToLobbyPlayer(Player player){
+    private LobbyPlayer playerToLobbyPlayer(SpectatorChangedToPlayer player){
         return new LobbyPlayer(
-                player.getPlayerName(),
-                player.getGamePlayerId(),
-                player.getReady(),
+                player.playerName(),
+                player.gamePlayerId(),
+                player.ready(),
                 true,
-                Optional.ofNullable(player.getTeamNumber()),
+                player.teamNumber(),
                 0);
     }
 
