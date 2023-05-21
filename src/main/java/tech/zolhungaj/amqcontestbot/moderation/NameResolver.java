@@ -31,24 +31,10 @@ public class NameResolver {
 
     /**
      * For general usage, most players will have already been resolved by Welcome and PunishmentManager
+     * Simply blocks for 10 seconds hoping it works, if it doesn't, it throws a RuntimeException
      * */
     public String getTrueNameBlocking(String nickname){
-        if(Util.isGuest(nickname)){
-            //guests never have nicknames, and the profile lookup for guests is slow
-            return nickname;
-        }
-        if(resolvedNames.containsKey(nickname)){
-            return resolvedNames.get(nickname);
-        }
-        CompletableFuture<String> future = new CompletableFuture<>();
-        api.once(command -> {
-            if(command instanceof PlayerProfile profile && (profile.nickname().equals(nickname))){
-                future.complete(profile.originalName());
-                return true;
-            }
-            return false;
-        });
-        api.sendCommand(new GetProfile(nickname));
+        final CompletableFuture<String> future = getTrueName(nickname);
         try{
             return future.get(10, TimeUnit.SECONDS);
         }catch (Exception e) {
@@ -60,8 +46,24 @@ public class NameResolver {
     /**
      * For usage where there is a chance that the accessed player is not yet present*/
     public CompletableFuture<String> getTrueName(String nickname){
-        CompletableFuture<String> future = new CompletableFuture<>();
-        future.completeAsync(() -> getTrueNameBlocking(nickname));
+        final CompletableFuture<String> future = new CompletableFuture<>();
+        if(Util.isGuest(nickname)){
+            //guests never have nicknames, and the profile lookup for guests is slow
+            future.complete(nickname);
+            return future;
+        }
+        if(resolvedNames.containsKey(nickname)){
+            future.complete(resolvedNames.get(nickname));
+            return future;
+        }
+        api.once(command -> {
+            if(command instanceof PlayerProfile profile && (profile.nickname().equals(nickname))){
+                future.complete(profile.originalName());
+                return true;
+            }
+            return false;
+        });
+        api.sendCommand(new GetProfile(nickname));
         return future;
     }
 }
