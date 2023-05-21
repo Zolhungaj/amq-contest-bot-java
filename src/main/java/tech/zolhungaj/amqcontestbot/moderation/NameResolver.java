@@ -2,6 +2,7 @@ package tech.zolhungaj.amqcontestbot.moderation;
 
 import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import tech.zolhungaj.amqapi.clientcommands.social.GetProfile;
 import tech.zolhungaj.amqapi.servercommands.social.PlayerProfile;
@@ -11,13 +12,16 @@ import tech.zolhungaj.amqcontestbot.Util;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.TimeUnit;
 
 @Component
 @RequiredArgsConstructor
 public class NameResolver {
+    private static final int MAX_REQUESTS_PER_SECOND = 20;
     private final ApiManager api;
     private final Map<String, String> resolvedNames = new HashMap<>();
+    private final ConcurrentLinkedQueue<String> pendingNames = new ConcurrentLinkedQueue<>();
 
     @PostConstruct
     private void init(){
@@ -63,7 +67,19 @@ public class NameResolver {
             }
             return false;
         });
-        api.sendCommand(new GetProfile(nickname));
+        queueNameResolve(nickname);
         return future;
+    }
+
+    private void queueNameResolve(String nickname){
+        pendingNames.add(nickname);
+    }
+
+    @Scheduled(fixedDelay = 1000 / MAX_REQUESTS_PER_SECOND, timeUnit = TimeUnit.MILLISECONDS)
+    public void resolveNames(){
+        final String nickname = pendingNames.poll();
+        if(nickname != null){
+            api.sendCommand(new GetProfile(nickname));
+        }
     }
 }
