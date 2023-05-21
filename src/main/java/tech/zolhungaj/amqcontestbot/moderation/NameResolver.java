@@ -72,7 +72,9 @@ public class NameResolver {
     }
 
     private void queueNameResolve(String nickname){
-        pendingNames.add(nickname);
+        if(!pendingNames.contains(nickname)){
+            pendingNames.add(nickname);
+        }
     }
 
     @Scheduled(fixedDelay = 1000 / MAX_REQUESTS_PER_SECOND, timeUnit = TimeUnit.MILLISECONDS)
