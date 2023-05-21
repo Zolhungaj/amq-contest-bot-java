@@ -4,6 +4,7 @@ import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import tech.zolhungaj.amqapi.clientcommands.social.GetProfile;
+import tech.zolhungaj.amqapi.servercommands.social.PlayerProfile;
 import tech.zolhungaj.amqcontestbot.ApiManager;
 import tech.zolhungaj.amqcontestbot.Util;
 
@@ -21,9 +22,9 @@ public class NameResolver {
     @PostConstruct
     private void init(){
         api.on(command -> {
-//            if(command instanceof ProfileEvent profile){
-//                resolvedNames.put(profile.nickname(), profile.trueName());
-//            }
+            if(command instanceof PlayerProfile profile){
+                resolvedNames.put(profile.nickname(), profile.originalName());
+            }
             return true;
         });
     }
@@ -39,16 +40,15 @@ public class NameResolver {
         if(resolvedNames.containsKey(nickname)){
             return resolvedNames.get(nickname);
         }
-        api.sendCommand(new GetProfile(nickname));
         CompletableFuture<String> future = new CompletableFuture<>();
         api.once(command -> {
-//            if(command instanceof ProfileEvent profile && (profile.nickname().equals(nickname))){
-//                    future.complete(profile.trueName());
-//                    return true;
-//            }
+            if(command instanceof PlayerProfile profile && (profile.nickname().equals(nickname))){
+                future.complete(profile.originalName());
+                return true;
+            }
             return false;
         });
-        future.complete(nickname); //TODO: remove this line when ProfileEvent is implemented
+        api.sendCommand(new GetProfile(nickname));
         try{
             return future.get(10, TimeUnit.SECONDS);
         }catch (Exception e) {
