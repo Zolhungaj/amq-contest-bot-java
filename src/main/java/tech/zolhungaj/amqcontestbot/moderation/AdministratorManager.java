@@ -66,8 +66,8 @@ public class AdministratorManager {
     }
 
     private void addAdmin(String sender, String receiver){
-        String senderTrueName = nameResolver.getTrueNameBlocking(sender);
-        String receiverTrueName = nameResolver.getTrueNameBlocking(receiver);
+        String senderTrueName = nameResolver.resolveOriginalName(sender);
+        String receiverTrueName = nameResolver.resolveOriginalName(receiver);
         playerService.addAdmin(senderTrueName, receiverTrueName);
     }
 
@@ -78,20 +78,20 @@ public class AdministratorManager {
         if(admin.equals(selfName)){
             throw new IllegalArgumentException("Cannot remove bot from admin role");
         }
-        String removerTrueName = nameResolver.getTrueNameBlocking(remover);
-        String adminTrueName = nameResolver.getTrueNameBlocking(admin);
+        String removerTrueName = nameResolver.resolveOriginalName(remover);
+        String adminTrueName = nameResolver.resolveOriginalName(admin);
         playerService.removeAdmin(removerTrueName, adminTrueName);
     }
 
     private void addModerator(String sender, String receiver){
-        String senderTrueName = nameResolver.getTrueNameBlocking(sender);
-        String receiverTrueName = nameResolver.getTrueNameBlocking(receiver);
+        String senderTrueName = nameResolver.resolveOriginalName(sender);
+        String receiverTrueName = nameResolver.resolveOriginalName(receiver);
         playerService.addModerator(senderTrueName, receiverTrueName);
     }
 
     private void removeModerator(String remover, String moderator){
-        String removerTrueName = nameResolver.getTrueNameBlocking(remover);
-        String moderatorTrueName = nameResolver.getTrueNameBlocking(moderator);
+        String removerTrueName = nameResolver.resolveOriginalName(remover);
+        String moderatorTrueName = nameResolver.resolveOriginalName(moderator);
         playerService.removeModerator(removerTrueName, moderatorTrueName);
     }
 }

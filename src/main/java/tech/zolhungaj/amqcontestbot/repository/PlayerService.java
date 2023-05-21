@@ -4,21 +4,21 @@ import org.springframework.stereotype.Service;
 
 @Service
 public class PlayerService {
-    public void ban(String trueName){
+    public void ban(String originalName){
         //TODO:implement
     }
-    public void unban(String trueName){
+    public void unban(String originalName){
         //TODO:implement
     }
-    public boolean isBanned(String trueName){
+    public boolean isBanned(String originalName){
         return false; //TODO:implement
     }
 
-    public boolean isModerator(String trueName){
+    public boolean isModerator(String originalName){
         return false;//TODO:implement
     }
-    public boolean isAdmin(String trueName){
-        if("Zolhungaj".equals(trueName)){
+    public boolean isAdmin(String originalName){
+        if("Zolhungaj".equals(originalName)){
             return true; //TODO: remove lol
         }
         return false;//TODO:implement
@@ -40,7 +40,7 @@ public class PlayerService {
         //TODO: implement
     }
 
-    public Object getPlayer(String trueName){
+    public Object getPlayer(String originalName){
         return new Object();
     }
 }

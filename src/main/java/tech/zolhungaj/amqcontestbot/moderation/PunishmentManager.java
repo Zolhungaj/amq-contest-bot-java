@@ -62,16 +62,16 @@ public class PunishmentManager {
             if(arguments.size() != 1){
                 throw new IllegalArgumentException();
             }
-            String trueName = arguments.get(0);
-            banByTrueName(trueName);
-        }, ChatCommands.Grant.MODERATOR, "bantrue");
+            String originalName = arguments.get(0);
+            banByOriginalName(originalName);
+        }, ChatCommands.Grant.MODERATOR, "banbyoriginalname", "bantrue");
         chatCommands.register((sender, arguments) -> {
             if(arguments.size() != 1){
                 throw new IllegalArgumentException();
             }
-            String trueName = arguments.get(0);
-            unbanByTrueName(trueName);
-        }, ChatCommands.Grant.MODERATOR,"unbantrue");
+            String originalName = arguments.get(0);
+            unbanByOriginalName(originalName);
+        }, ChatCommands.Grant.MODERATOR, "unbanbyoriginalname", "unbantrue");
     }
 
     private void registerKickCommands(){
@@ -93,41 +93,42 @@ public class PunishmentManager {
 
     private void ban(String nickname){
         kick(nickname);
-        nameResolver.getTrueName(nickname)
-                .thenAccept(this::banByTrueName);
+        nameResolver.resolveOriginalNameAsync(nickname)
+                .thenAccept(this::banByOriginalName);
     }
-    private void banByTrueName(String trueName){
-        if(!playerService.isModerator(trueName)){
-            playerService.ban(trueName);
+    private void banByOriginalName(String originalName){
+        if(!playerService.isModerator(originalName)){
+            playerService.ban(originalName);
         }
     }
     private void unban(String nickname){
         unkick(nickname);
-        nameResolver.getTrueName(nickname)
-                .thenAccept(this::unbanByTrueName);
+        nameResolver.resolveOriginalNameAsync(nickname)
+                .thenAccept(this::unbanByOriginalName);
     }
 
-    private void unbanByTrueName(String trueName){
-        playerService.unban(trueName);
+    private void unbanByOriginalName(String originalName){
+        playerService.unban(originalName);
     }
 
     public void kick(String nickname){
-        nameResolver.getTrueName(nickname)
-                .thenAccept(trueName -> {
-                    if(!playerService.isModerator(trueName)){
-                        kickedThisSession.add(trueName);
+        nameResolver.resolveOriginalNameAsync(nickname)
+                .thenAccept(originalName -> {
+                    if(!playerService.isModerator(originalName)){
+                        kickedThisSession.add(originalName);
                         kickInternal(nickname);
                     }
                 });
     }
 
     private void unkick(String nickname){
-        nameResolver.getTrueName(nickname).thenAccept(kickedThisSession::remove);
+        nameResolver.resolveOriginalNameAsync(nickname)
+                .thenAccept(kickedThisSession::remove);
     }
 
     private void handleJoin(String nickname){
-        nameResolver.getTrueName(nickname).thenAccept(trueName -> {
-            if(kickedThisSession.contains(trueName) || playerService.isBanned(trueName)){
+        nameResolver.resolveOriginalNameAsync(nickname).thenAccept(originalName -> {
+            if(kickedThisSession.contains(originalName) || playerService.isBanned(originalName)){
                 kickInternal(nickname);
             }
         });

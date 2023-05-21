@@ -167,16 +167,16 @@ public class ChatCommands {
                 switch(command.grant()){
                     case NONE -> command.handler().accept(sender, arguments);
                     case MODERATOR -> {
-                        String trueName = nameResolver.getTrueNameBlocking(sender);
-                        if(playerService.isModerator(trueName) || playerService.isAdmin(trueName)){
+                        String originalName = nameResolver.resolveOriginalName(sender);
+                        if(playerService.isModerator(originalName) || playerService.isAdmin(originalName)){
                             command.handler().accept(sender, arguments);
                         }else{
                             throw new IllegalArgumentException("Must be moderator");
                         }
                     }
                     case ADMIN -> {
-                        String trueName = nameResolver.getTrueNameBlocking(sender);
-                        if(playerService.isAdmin(trueName)){
+                        String originalName = nameResolver.resolveOriginalName(sender);
+                        if(playerService.isAdmin(originalName)){
                             command.handler().accept(sender, arguments);
                         }else{
                             throw new IllegalArgumentException("Must be admin");

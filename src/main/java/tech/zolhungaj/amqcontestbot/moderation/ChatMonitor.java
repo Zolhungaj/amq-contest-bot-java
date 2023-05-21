@@ -51,7 +51,8 @@ public class ChatMonitor {
 
     private void handlePlayer(String nickname){
         rateName(nickname, nickname);
-        nameResolver.getTrueName(nickname).thenAccept(trueName -> rateName(nickname, trueName));
+        nameResolver.resolveOriginalNameAsync(nickname)
+                .thenAccept(originalName -> rateName(nickname, originalName));
     }
 
     private void rateMessage(String sender, String message){

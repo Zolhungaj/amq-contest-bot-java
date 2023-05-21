@@ -35,21 +35,21 @@ public class Welcome {
 
     private void newPlayer(String nickname, int level, PlayerAvatar avatar){
         nameResolver
-                .getTrueName(nickname)
-                .thenAccept(trueName -> newPlayer(nickname, trueName, level, avatar));
+                .resolveOriginalNameAsync(nickname)
+                .thenAccept(originalName -> newPlayer(nickname, originalName, level, avatar));
     }
 
-    private void newPlayer(String nickname, String trueName, int level, PlayerAvatar avatar){
+    private void newPlayer(String nickname, String originalName, int level, PlayerAvatar avatar){
 
     }
 
     private void newSpectator(String nickname){
         nameResolver
-                .getTrueName(nickname)
-                .thenAccept(trueName -> newSpectator(nickname, trueName));
+                .resolveOriginalNameAsync(nickname)
+                .thenAccept(originalName -> newSpectator(nickname, originalName));
     }
-    private void newSpectator(String nickname, String trueName){
-        Object player = playerService.getPlayer(trueName);
+    private void newSpectator(String nickname, String originalName){
+        Object player = playerService.getPlayer(originalName);
         //TODO: handle the rest
     }
 }

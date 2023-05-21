@@ -37,8 +37,8 @@ public class NameResolver {
      * For general usage, most players will have already been resolved by Welcome and PunishmentManager
      * Simply blocks for 10 seconds hoping it works, if it doesn't, it throws a RuntimeException
      * */
-    public String getTrueNameBlocking(String nickname){
-        final CompletableFuture<String> future = getTrueName(nickname);
+    public String resolveOriginalName(String nickname){
+        final CompletableFuture<String> future = resolveOriginalNameAsync(nickname);
         try{
             return future.get(10, TimeUnit.SECONDS);
         }catch (Exception e) {
@@ -49,7 +49,7 @@ public class NameResolver {
 
     /**
      * For usage where there is a chance that the accessed player is not yet present*/
-    public CompletableFuture<String> getTrueName(String nickname){
+    public CompletableFuture<String> resolveOriginalNameAsync(String nickname){
         final CompletableFuture<String> future = new CompletableFuture<>();
         if(Util.isGuest(nickname)){
             //guests never have nicknames, and the profile lookup for guests is slow
