@@ -41,9 +41,11 @@ public class NameResolver {
         final CompletableFuture<String> future = resolveOriginalNameAsync(nickname);
         try{
             return future.get(10, TimeUnit.SECONDS);
+        }catch(InterruptedException e){
+            Thread.currentThread().interrupt();
+            throw new NameResolutionFailedException(e);
         }catch (Exception e) {
-            //TODO: handle this exception better
-            throw new RuntimeException(e);
+            throw new NameResolutionFailedException(e);
         }
     }
 
