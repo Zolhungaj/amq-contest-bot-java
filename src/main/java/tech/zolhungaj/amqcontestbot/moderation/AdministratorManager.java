@@ -8,6 +8,8 @@ import tech.zolhungaj.amqcontestbot.ApiManager;
 import tech.zolhungaj.amqcontestbot.chat.ChatCommands;
 import tech.zolhungaj.amqcontestbot.repository.PlayerService;
 
+import java.util.concurrent.CompletableFuture;
+
 @Component
 @RequiredArgsConstructor
 public class AdministratorManager {
@@ -24,7 +26,7 @@ public class AdministratorManager {
         api.on(command -> {
             if(command instanceof LoginComplete loginComplete){
                 selfName = loginComplete.selfName();
-                addAdmin(selfName, selfName);
+                CompletableFuture.runAsync(() -> this.addAdmin(selfName, selfName));
                 return true;
             }
             return false;
