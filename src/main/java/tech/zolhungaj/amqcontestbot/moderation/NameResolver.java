@@ -63,7 +63,7 @@ public class NameResolver {
             return future;
         }
         api.once(command -> {
-            if(command instanceof PlayerProfile profile && (profile.nickname().equals(nickname))){
+            if(command instanceof PlayerProfile profile && profile.nickname().equals(nickname)){
                 future.complete(profile.originalName());
                 return true;
             }

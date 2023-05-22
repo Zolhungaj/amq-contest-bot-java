@@ -6,6 +6,8 @@ import org.springframework.stereotype.Component;
 import tech.zolhungaj.amqapi.servercommands.gameroom.GameChatMessage;
 import tech.zolhungaj.amqapi.servercommands.gameroom.GameChatUpdate;
 import tech.zolhungaj.amqcontestbot.ApiManager;
+import tech.zolhungaj.amqcontestbot.moderation.NameResolutionFailedException;
+import tech.zolhungaj.amqcontestbot.moderation.NameResolver;
 
 import java.time.Instant;
 import java.util.function.Predicate;
@@ -15,6 +17,7 @@ import java.util.function.Predicate;
 public class UtilityCommands {
 
     private final ApiManager api;
+    private final NameResolver nameResolver;
     private final ChatCommands chatCommands;
     private final ChatController chatController;
 
@@ -22,6 +25,7 @@ public class UtilityCommands {
     public void init(){
         registerPing();
         registerSay();
+        registerResolve();
     }
 
     private void registerPing(){
@@ -58,5 +62,20 @@ public class UtilityCommands {
                 ChatCommands.Grant.ADMIN,
                 "say"
         );
+    }
+
+    private void registerResolve(){
+        chatCommands.register((sender, arguments) -> {
+            if(arguments.size() != 1){
+                throw new IllegalArgumentException();
+            }
+            String nickname = arguments.get(0);
+            try{
+                String originalName = nameResolver.resolveOriginalName(nickname);
+                chatController.send("name-resolver.result", nickname, originalName);
+            }catch(NameResolutionFailedException e){
+                chatController.send("name-resolver.not-found", nickname);
+            }
+        }, ChatCommands.Grant.NONE, "resolve");
     }
 }
