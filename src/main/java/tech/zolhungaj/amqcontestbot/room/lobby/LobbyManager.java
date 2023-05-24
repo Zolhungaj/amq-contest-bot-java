@@ -84,6 +84,7 @@ public class LobbyManager {
                 this.players.computeIfPresent(playerReadyChange.gamePlayerId(), (key, player) -> player.withReady(playerReadyChange.ready()));
             }else if(command instanceof FileServerStatus fileServerStatus){
                 fileServerState.put(fileServerStatus.serverName(), fileServerStatus.online());
+                sendMessageAboutFileServers();
             }
             //TODO: queue
             //TODO: game end or failed to open
@@ -130,6 +131,14 @@ public class LobbyManager {
 
     private void removeSpectator(String playerName){
         spectators.remove(playerName);
+    }
+
+    private void sendMessageAboutFileServers(){
+        if(noFullFileServersOnline()){
+            chatController.send("lobby.full-file-servers-online.none");
+        }else{
+            chatController.send("lobby.full-file-servers-online.some");
+        }
     }
 
     private void addToQueue(String playerName){
