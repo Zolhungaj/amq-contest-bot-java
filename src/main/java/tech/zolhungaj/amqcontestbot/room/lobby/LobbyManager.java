@@ -14,6 +14,7 @@ import tech.zolhungaj.amqapi.servercommands.gameroom.PlayerLeft;
 import tech.zolhungaj.amqapi.servercommands.gameroom.lobby.PlayerChangedToSpectator;
 import tech.zolhungaj.amqapi.servercommands.gameroom.lobby.PlayerReadyChange;
 import tech.zolhungaj.amqapi.servercommands.gameroom.lobby.SpectatorChangedToPlayer;
+import tech.zolhungaj.amqapi.servercommands.globalstate.FileServerStateChange;
 import tech.zolhungaj.amqapi.servercommands.globalstate.LoginComplete;
 import tech.zolhungaj.amqapi.servercommands.objects.Player;
 import tech.zolhungaj.amqapi.sharedobjects.gamesettings.GameSettings;
@@ -36,6 +37,7 @@ import java.util.stream.Collectors;
 public class LobbyManager {
     private static final int WAIT_TIME = 30;
     private static final int SECONDARY_WAIT_TIME = 10;
+    private static final List<String> FULL_FILE_SERVERS = List.of("catbox");
     private final ApiManager api;
     private final ChatController chatController;
     private final GameMode gameMode = new MasterOfTheSeasonsGameMode();
@@ -47,6 +49,7 @@ public class LobbyManager {
     private final Map<Integer, LobbyPlayer> players = new ConcurrentHashMap<>();
     private final Set<String> spectators = new HashSet<>();
     private final Queue<String> queue = new ConcurrentLinkedQueue<>();
+    private final Map<String, Boolean> fileServerState = new HashMap<>();
 
     @PostConstruct
     public void init(){
@@ -55,6 +58,7 @@ public class LobbyManager {
                 selfName = loginComplete.selfName();
                 currentSettings = gameMode.getNextSettings();
                 api.sendCommand(new HostRoom(currentSettings));
+                loginComplete.serverStatuses().forEach(serverStatus -> fileServerState.put(serverStatus.name(), serverStatus.online()));
             }else if(command instanceof tech.zolhungaj.amqapi.servercommands.gameroom.lobby.HostGame hostGame){
                 this.players.clear();
                 hostGame.players().stream()
@@ -77,6 +81,8 @@ public class LobbyManager {
                 addSpectator(toSpectator.spectatorDescription().playerName());
             }else if(command instanceof PlayerReadyChange playerReadyChange){
                 this.players.computeIfPresent(playerReadyChange.gamePlayerId(), (key, player) -> player.withReady(playerReadyChange.ready()));
+            }else if(command instanceof FileServerStateChange fileServerStateChange){
+                fileServerState.put(fileServerStateChange.serverName(), fileServerStateChange.online());
             }
             //TODO: trigger lock if Catbox is down
             //TODO: queue
@@ -145,10 +151,19 @@ public class LobbyManager {
             resetConsecutiveGames();
             return;
         }
+        if(noFullFileServersOnline()){
+            return;
+        }
         if(!startIfPossible()){
             sendCountdownBasedMessage();
             counter++;
         }
+    }
+
+    private boolean noFullFileServersOnline(){
+        return fileServerState.entrySet().stream()
+                .filter(entry -> FULL_FILE_SERVERS.contains(entry.getKey()))
+                .noneMatch(Map.Entry::getValue);
     }
 
     private long playerCount(){
