@@ -14,9 +14,8 @@ import tech.zolhungaj.amqapi.servercommands.gameroom.PlayerLeft;
 import tech.zolhungaj.amqapi.servercommands.gameroom.lobby.PlayerChangedToSpectator;
 import tech.zolhungaj.amqapi.servercommands.gameroom.lobby.PlayerReadyChange;
 import tech.zolhungaj.amqapi.servercommands.gameroom.lobby.SpectatorChangedToPlayer;
-import tech.zolhungaj.amqapi.servercommands.globalstate.FileServerStateChange;
+import tech.zolhungaj.amqapi.servercommands.globalstate.FileServerStatus;
 import tech.zolhungaj.amqapi.servercommands.globalstate.LoginComplete;
-import tech.zolhungaj.amqapi.servercommands.objects.Player;
 import tech.zolhungaj.amqapi.sharedobjects.gamesettings.GameSettings;
 import tech.zolhungaj.amqcontestbot.ApiManager;
 import tech.zolhungaj.amqcontestbot.chat.ChatController;
@@ -58,9 +57,11 @@ public class LobbyManager {
                 selfName = loginComplete.selfName();
                 currentSettings = gameMode.getNextSettings();
                 api.sendCommand(new HostRoom(currentSettings));
-                loginComplete.serverStatuses().forEach(serverStatus -> fileServerState.put(serverStatus.name(), serverStatus.online()));
+                loginComplete.serverStatuses().forEach(serverStatus -> fileServerState.put(serverStatus.serverName(), serverStatus.online()));
             }else if(command instanceof tech.zolhungaj.amqapi.servercommands.gameroom.lobby.HostGame hostGame){
                 this.players.clear();
+                this.spectators.clear();
+                this.queue.clear();
                 hostGame.players().stream()
                         .map(this::newPlayerToLobbyPlayer)
                         .forEach(lobbyPlayer -> this.players.put(lobbyPlayer.gamePlayerId(), lobbyPlayer));
@@ -81,10 +82,9 @@ public class LobbyManager {
                 addSpectator(toSpectator.spectatorDescription().playerName());
             }else if(command instanceof PlayerReadyChange playerReadyChange){
                 this.players.computeIfPresent(playerReadyChange.gamePlayerId(), (key, player) -> player.withReady(playerReadyChange.ready()));
-            }else if(command instanceof FileServerStateChange fileServerStateChange){
-                fileServerState.put(fileServerStateChange.serverName(), fileServerStateChange.online());
+            }else if(command instanceof FileServerStatus fileServerStatus){
+                fileServerState.put(fileServerStatus.serverName(), fileServerStatus.online());
             }
-            //TODO: trigger lock if Catbox is down
             //TODO: queue
             //TODO: game end or failed to open
             //TODO: leave room
