@@ -6,6 +6,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
+import tech.zolhungaj.amqapi.clientcommands.lobby.ChangeRoomSettings;
 import tech.zolhungaj.amqapi.clientcommands.lobby.MovePlayerToSpectator;
 import tech.zolhungaj.amqapi.clientcommands.lobby.StartGame;
 import tech.zolhungaj.amqapi.clientcommands.roombrowser.HostRoom;
@@ -245,6 +246,12 @@ public class LobbyManager {
         });
     }
 
+    private void onStartOfLobbyPhase(){
+        emptyQueueIfPossible();
+        inLobby = true;
+        cycleGameMode();
+    }
+
     //TODO: hookup, should happen after players and queue has been updated after game
     private void emptyQueueIfPossible(){
         final List<LobbyPlayer> playersEligibleForChanging = new ArrayList<>(this.players.values().stream()
@@ -262,6 +269,11 @@ public class LobbyManager {
 
     private void moveToSpectator(String playerName){
         api.sendCommand(new MovePlayerToSpectator(playerName));
+    }
+
+    private void cycleGameMode(){
+        GameSettings nextSettings = gameMode.getNextSettings();
+        api.sendCommand(new ChangeRoomSettings(nextSettings));
     }
 
     private void leaveRoom(){
