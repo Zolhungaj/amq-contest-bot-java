@@ -5,7 +5,11 @@ import org.springframework.stereotype.Component;
 import tech.zolhungaj.amqapi.AmqApi;
 import tech.zolhungaj.amqapi.EventHandler;
 import tech.zolhungaj.amqapi.clientcommands.ClientCommand;
+import tech.zolhungaj.amqapi.servercommands.Command;
 import tech.zolhungaj.amqapi.servercommands.globalstate.LoginComplete;
+
+import java.util.function.Consumer;
+import java.util.function.Predicate;
 
 @Component
 public class ApiManager {
@@ -22,12 +26,22 @@ public class ApiManager {
         });
     }
 
+    @Deprecated(forRemoval = true)
     public void on(EventHandler handler){
         this.api.on(handler);
     }
 
+    @Deprecated(forRemoval = true)
     public void once(EventHandler handler){
         this.api.once(handler);
+    }
+
+    public <T extends Command> void on(Class<T> commandClass, Consumer<T> consumer){
+        this.api.on(commandClass, consumer);
+    }
+
+    public <T extends Command> void once(Class<T> commandClass, Predicate<T> predicate){
+        this.api.once(commandClass, predicate);
     }
 
     public void sendCommand(ClientCommand command){
