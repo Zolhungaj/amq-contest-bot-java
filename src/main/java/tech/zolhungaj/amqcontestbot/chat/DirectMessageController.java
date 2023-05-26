@@ -26,7 +26,7 @@ public class DirectMessageController {
     private final ConcurrentLinkedQueue<DM> pendingMessages = new ConcurrentLinkedQueue<>();
 
     @PostConstruct
-    public void init(){
+    private void init(){
         api.on(command -> {
             if(false){//TODO: command instanceof NewChatAlert
                 String alert = "";

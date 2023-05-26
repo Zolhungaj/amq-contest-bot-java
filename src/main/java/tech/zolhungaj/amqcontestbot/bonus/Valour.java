@@ -15,7 +15,7 @@ public class Valour {
     private final PlayerService playerService;
 
     @PostConstruct
-    public void init(){
+    private void init(){
         chatCommands.register((sender, arguments) -> {
             if(arguments.size() == 1){
                 double value = Double.parseDouble(arguments.get(0));

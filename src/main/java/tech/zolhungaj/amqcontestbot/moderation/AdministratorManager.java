@@ -18,7 +18,7 @@ public class AdministratorManager {
     private final PlayerService playerService;
     private final NameResolver nameResolver;
     @PostConstruct
-    public void init(){
+    private void init(){
         registerAdmin();
         registerModerator();
         api.on(LoginComplete.class, loginComplete -> CompletableFuture.runAsync(

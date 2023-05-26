@@ -22,7 +22,7 @@ public class UtilityCommands {
     private final ChatController chatController;
 
     @PostConstruct
-    public void init(){
+    private void init(){
         registerPing();
         registerSay();
         registerResolve();

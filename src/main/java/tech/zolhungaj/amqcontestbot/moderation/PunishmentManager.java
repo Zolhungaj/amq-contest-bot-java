@@ -25,7 +25,7 @@ public class PunishmentManager {
     private final Set<String> kickedThisSession = Collections.synchronizedSet(new HashSet<>());
 
     @PostConstruct
-    public void init(){
+    private void init(){
         api.on(SpectatorJoined.class, spectatorJoined -> handleJoin(spectatorJoined.playerName()));
         api.on(NewPlayer.class, newPlayer -> handleJoin(newPlayer.playerName()));
         registerBanCommands();

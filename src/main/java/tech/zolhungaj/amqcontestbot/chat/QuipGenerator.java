@@ -1,6 +1,7 @@
 package tech.zolhungaj.amqcontestbot.chat;
 
-import org.springframework.beans.factory.annotation.Autowired;
+import jakarta.annotation.PostConstruct;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
 import java.util.random.RandomGenerator;
@@ -9,13 +10,15 @@ import java.util.random.RandomGenerator;
  * This is also responsible for introductions to the bot for new players
  */
 @Component
+@RequiredArgsConstructor
 public class QuipGenerator {
     private double chattiness = 0.25;
     private final RandomGenerator randomGenerator = RandomGenerator.of("L64X128MixRandom");
     private final ChatController chatController;
-    public QuipGenerator(@Autowired ChatCommands chatCommands,
-                         @Autowired ChatController chatController){
-        this.chatController = chatController;
+    private final ChatCommands chatCommands;
+
+    @PostConstruct
+    private void init(){
         chatCommands.register((sender, arguments) -> {
             final double value;
             if(arguments.size() == 1){

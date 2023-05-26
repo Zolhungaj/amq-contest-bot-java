@@ -33,7 +33,7 @@ public class LevelGuard {
     private final ConcurrentMap<String, Integer> issuedWarnings = new ConcurrentHashMap<>();
 
     @PostConstruct
-    public void init(){
+    private void init(){
         api.on(NewPlayer.class, player -> onJoin(player.playerName(), player.level()));
         api.on(SpectatorChangedToPlayer.class, player -> onJoin(player.playerName(), player.level()));
     }

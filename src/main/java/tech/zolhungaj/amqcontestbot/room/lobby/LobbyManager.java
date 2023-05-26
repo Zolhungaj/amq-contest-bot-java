@@ -52,7 +52,7 @@ public class LobbyManager {
     private final Map<String, Boolean> fileServerState = new HashMap<>();
 
     @PostConstruct
-    public void init(){
+    private void init(){
         api.on(LoginComplete.class, loginComplete -> {
             currentSettings = gameMode.getNextSettings();
             api.sendCommand(new HostRoom(currentSettings));

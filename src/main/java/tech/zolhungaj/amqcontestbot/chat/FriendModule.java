@@ -15,7 +15,7 @@ public class FriendModule {
     private final ChatCommands chatCommands;
 
     @PostConstruct
-    public void init(){
+    private void init(){
         api.on(FriendRequestReceived.class, friendRequest -> acceptFriendRequest(friendRequest.playerName()));
         chatCommands.register((sender, arguments) -> sendFriendRequest(sender), "friend");
     }

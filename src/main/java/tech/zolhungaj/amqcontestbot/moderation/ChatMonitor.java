@@ -25,7 +25,7 @@ public class ChatMonitor {
     private Set<BannedPhrase> bannedPhrases;
 
     @PostConstruct
-    public void init(){
+    private void init(){
         bannedPhrases = Set.of();
         api.on(GameChatMessage.class, this::handleMessage);
         api.on(GameChatUpdate.class, gameChatUpdate -> gameChatUpdate.messages().forEach(this::handleMessage));

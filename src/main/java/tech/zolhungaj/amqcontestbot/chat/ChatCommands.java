@@ -90,7 +90,7 @@ public class ChatCommands {
     }
 
     @PostConstruct
-    public void init(){
+    private void init(){
         api.on(GameChatMessage.class, this::handleMessage);
         api.on(GameChatUpdate.class, gameChatUpdate -> gameChatUpdate.messages().forEach(this::handleMessage));
         registerChatCommands();
