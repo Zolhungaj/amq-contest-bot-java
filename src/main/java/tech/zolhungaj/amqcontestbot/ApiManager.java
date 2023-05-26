@@ -28,14 +28,6 @@ public class ApiManager {
         this.api.on(handler);
     }
 
-    /**
-     * @deprecated
-     */
-    @Deprecated(forRemoval = true)
-    public void once(EventHandler handler){
-        this.api.once(handler);
-    }
-
     public <T extends Command> void on(Class<T> commandClass, Consumer<T> consumer){
         this.api.on(commandClass, consumer);
     }
