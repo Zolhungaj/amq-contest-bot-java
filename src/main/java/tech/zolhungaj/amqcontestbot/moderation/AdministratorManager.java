@@ -17,16 +17,13 @@ public class AdministratorManager {
     private final ApiManager api;
     private final PlayerService playerService;
     private final NameResolver nameResolver;
-    private String selfName = "";
-
     @PostConstruct
     public void init(){
         registerAdmin();
         registerModerator();
-        api.on(LoginComplete.class, loginComplete -> {
-            selfName = loginComplete.selfName();
-            CompletableFuture.runAsync(() -> this.addAdmin(selfName, selfName));
-        });
+        api.on(LoginComplete.class, loginComplete -> CompletableFuture.runAsync(
+                () -> this.addAdmin(api.getSelfName(), api.getSelfName()))
+        );
     }
 
     private void registerAdmin(){
@@ -73,7 +70,7 @@ public class AdministratorManager {
         if(admin.equals(remover)){
             throw new IllegalArgumentException("Cannot remove self");
         }
-        if(admin.equals(selfName)){
+        if(admin.equals(api.getSelfName())){
             throw new IllegalArgumentException("Cannot remove bot from admin role");
         }
         String removerTrueName = nameResolver.resolveOriginalName(remover);

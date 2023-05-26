@@ -44,7 +44,6 @@ public class LobbyManager {
     private final GameMode gameMode = new MasterOfTheSeasonsGameMode();
     private GameSettings currentSettings = null;
     private int counter = 0;
-    private String selfName = "";
     private boolean inLobby = false;
     private int gameId = -1;
     private final Map<Integer, LobbyPlayer> players = new ConcurrentHashMap<>();
@@ -55,7 +54,6 @@ public class LobbyManager {
     @PostConstruct
     public void init(){
         api.on(LoginComplete.class, loginComplete -> {
-            selfName = loginComplete.selfName();
             currentSettings = gameMode.getNextSettings();
             api.sendCommand(new HostRoom(currentSettings));
             loginComplete.serverStatuses().forEach(serverStatus -> fileServerState.put(serverStatus.serverName(), serverStatus.online()));
@@ -69,7 +67,7 @@ public class LobbyManager {
                     .forEach(lobbyPlayer -> this.players.put(lobbyPlayer.gamePlayerId(), lobbyPlayer));
             inLobby = true;
             gameId = hostGame.gameId();
-            moveToSpectator(selfName);
+            moveToSpectator(api.getSelfName());
         });
         api.on(NewPlayer.class, newPlayer -> addPlayer(newPlayerToLobbyPlayer(newPlayer)));
         api.on(SpectatorChangedToPlayer.class, spectatorChangedToPlayer -> {

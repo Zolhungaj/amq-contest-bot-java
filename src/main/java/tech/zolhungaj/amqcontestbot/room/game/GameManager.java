@@ -20,15 +20,11 @@ public class GameManager {
     /** map over players contained in contestants, used to update disconnects*/
     private final Map<Integer, PlayerInformation> players = new HashMap<>();
     private final Map<Integer, Long> playerAnswerTimes = new HashMap<>();
-    private String selfName = "";
     private boolean inGame = false;
 
     @PostConstruct
     private void init(){
-        api.on(LoginComplete.class, loginComplete -> {
-            selfName = loginComplete.selfName();
-            reset();
-        });
+        api.on(LoginComplete.class, loginComplete -> reset());
         //TODO: game start
         //TODO:game end, including incorrect end
         //TODO:round start
