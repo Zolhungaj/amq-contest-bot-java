@@ -25,12 +25,7 @@ public class NameResolver {
 
     @PostConstruct
     private void init(){
-        api.on(command -> {
-            if(command instanceof PlayerProfile profile){
-                resolvedNames.put(profile.nickname(), profile.originalName());
-            }
-            return true;
-        });
+        api.on(PlayerProfile.class, profile -> resolvedNames.put(profile.nickname(), profile.originalName()));
     }
 
     /**
@@ -62,8 +57,8 @@ public class NameResolver {
             future.complete(resolvedNames.get(nickname));
             return future;
         }
-        api.once(command -> {
-            if(command instanceof PlayerProfile profile && profile.nickname().equals(nickname)){
+        api.once(PlayerProfile.class, profile -> {
+            if(nickname.equals(profile.nickname())){
                 future.complete(profile.originalName());
                 return true;
             }

@@ -27,12 +27,7 @@ public class AmqContestBotApplication implements ApplicationRunner {
 			log.info("Main received command {}", command);
 			return true;
 		});
-		api.on(command -> {
-			if(command instanceof OnlinePlayerCountChange o){
-				log.info("Players online changed: {}", o.count());
-			}
-			return true;
-		});
+		api.on(OnlinePlayerCountChange.class, o -> log.info("Players online changed: {}", o.count()));
 		api.start();
 	}
 }

@@ -45,14 +45,9 @@ public class UtilityCommands {
                 }
                 return false;
             };
-            api.once(command -> {
-                if(command instanceof GameChatMessage gameChatMessage){
-                    return printWhenMatch.test(gameChatMessage);
-                }else if(command instanceof GameChatUpdate gameChatUpdate){
-                    return gameChatUpdate.messages().stream().anyMatch(printWhenMatch);
-                }
-                return false;
-            });
+            //will probably build up once-functions for one of these, but unlikely to be a problem
+            api.once(GameChatMessage.class, printWhenMatch);
+            api.once(GameChatUpdate.class, gameChatUpdate -> gameChatUpdate.messages().stream().anyMatch(printWhenMatch));
         }, "ping");
     }
 

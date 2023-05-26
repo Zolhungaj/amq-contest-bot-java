@@ -27,22 +27,11 @@ public class ChatMonitor {
     @PostConstruct
     public void init(){
         bannedPhrases = Set.of();
-        api.on(command -> {
-            if(command instanceof GameChatMessage gameChatMessage){
-                this.handleMessage(gameChatMessage);
-            }
-            if (command instanceof GameChatUpdate gameChatUpdate){
-                gameChatUpdate.messages().forEach(this::handleMessage);
-            }
-            if (command instanceof NewPlayer newPlayer){
-                handlePlayer(newPlayer.playerName());
-            }
-            if (command instanceof SpectatorJoined spectatorJoined){
-                handlePlayer(spectatorJoined.playerName());
-            }
-            //TODO: check answers too
-            return true;
-        });
+        api.on(GameChatMessage.class, this::handleMessage);
+        api.on(GameChatUpdate.class, gameChatUpdate -> gameChatUpdate.messages().forEach(this::handleMessage));
+        api.on(NewPlayer.class, newPlayer -> handlePlayer(newPlayer.playerName()));
+        api.on(SpectatorJoined.class, spectatorJoined -> handlePlayer(spectatorJoined.playerName()));
+        //TODO: check answers too
     }
 
     private void handleMessage(GameChatMessage gameChatMessage){

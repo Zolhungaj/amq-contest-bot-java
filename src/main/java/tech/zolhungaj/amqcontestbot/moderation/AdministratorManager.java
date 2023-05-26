@@ -23,13 +23,9 @@ public class AdministratorManager {
     public void init(){
         registerAdmin();
         registerModerator();
-        api.on(command -> {
-            if(command instanceof LoginComplete loginComplete){
-                selfName = loginComplete.selfName();
-                CompletableFuture.runAsync(() -> this.addAdmin(selfName, selfName));
-                return true;
-            }
-            return false;
+        api.on(LoginComplete.class, loginComplete -> {
+            selfName = loginComplete.selfName();
+            CompletableFuture.runAsync(() -> this.addAdmin(selfName, selfName));
         });
     }
 

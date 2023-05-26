@@ -34,15 +34,8 @@ public class LevelGuard {
 
     @PostConstruct
     public void init(){
-        api.on(command -> {
-            if(command instanceof NewPlayer player){
-                onJoin(player.playerName(), player.level());
-            }
-            if(command instanceof SpectatorChangedToPlayer player){
-                onJoin(player.playerName(), player.level());
-            }
-            return true;
-        });
+        api.on(NewPlayer.class, player -> onJoin(player.playerName(), player.level()));
+        api.on(SpectatorChangedToPlayer.class, player -> onJoin(player.playerName(), player.level()));
     }
 
     private void onJoin(String playerName, int level){

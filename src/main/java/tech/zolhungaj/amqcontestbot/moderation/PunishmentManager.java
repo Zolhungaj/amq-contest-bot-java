@@ -26,15 +26,8 @@ public class PunishmentManager {
 
     @PostConstruct
     public void init(){
-        api.on(command -> {
-            if(command instanceof SpectatorJoined spectatorJoined){
-                handleJoin(spectatorJoined.playerName());
-            }
-            if(command instanceof NewPlayer newPlayer){
-                handleJoin(newPlayer.playerName());
-            }
-            return true;
-        });
+        api.on(SpectatorJoined.class, spectatorJoined -> handleJoin(spectatorJoined.playerName()));
+        api.on(NewPlayer.class, newPlayer -> handleJoin(newPlayer.playerName()));
         registerBanCommands();
         registerBanTrueCommands();
         registerKickCommands();

@@ -22,15 +22,8 @@ public class Welcome {
         this.chatController = chatController;
         this.nameResolver = nameResolver;
         this.playerService = playerService;
-        api.on(command -> {
-            if(command instanceof SpectatorJoined spectatorJoined){
-                newSpectator(spectatorJoined.playerName());
-            }
-            if(command instanceof NewPlayer newPlayer){
-                newPlayer(newPlayer.playerName(), newPlayer.level(), newPlayer.avatar());
-            }
-            return true;
-        });
+        api.on(SpectatorJoined.class, spectatorJoined -> newSpectator(spectatorJoined.playerName()));
+        api.on(NewPlayer.class, player -> newPlayer(player.playerName(), player.level(), player.avatar()));
     }
 
     private void newPlayer(String nickname, int level, PlayerAvatar avatar){

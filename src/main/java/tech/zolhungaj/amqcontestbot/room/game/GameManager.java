@@ -25,19 +25,15 @@ public class GameManager {
 
     @PostConstruct
     private void init(){
-        api.on(command -> {
-            if(command instanceof LoginComplete loginComplete){
-                this.selfName = loginComplete.selfName();
-                reset();
-            }
-            /*
-            TODO: game start
-            game end, including incorrect end
-            round start
-            answer time
-            disconnect*/
-            return true;
+        api.on(LoginComplete.class, loginComplete -> {
+            selfName = loginComplete.selfName();
+            reset();
         });
+        //TODO: game start
+        //TODO:game end, including incorrect end
+        //TODO:round start
+        //TODO:answer time
+        //TODO:disconnect
     }
 
     private void startGame(Object info){

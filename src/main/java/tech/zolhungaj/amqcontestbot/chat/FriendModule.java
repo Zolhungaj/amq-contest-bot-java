@@ -16,12 +16,7 @@ public class FriendModule {
 
     @PostConstruct
     public void init(){
-        api.on(command -> {
-            if(command instanceof FriendRequestReceived friendRequestReceived){
-                acceptFriendRequest(friendRequestReceived.playerName());
-            }
-            return true;
-        });
+        api.on(FriendRequestReceived.class, friendRequest -> acceptFriendRequest(friendRequest.playerName()));
         chatCommands.register((sender, arguments) -> sendFriendRequest(sender), "friend");
     }
 

@@ -17,20 +17,20 @@ public class ApiManager {
     private String selfName;
     public ApiManager(@Autowired ApiConfiguration configuration){
         this.api = new AmqApi(configuration.getUsername(), configuration.getPassword(), configuration.isForceConnect());
-        this.on(command -> {
-            if(command instanceof LoginComplete loginComplete){
-                selfName = loginComplete.selfName();
-                return true;
-            }
-            return false;
-        });
+        this.on(LoginComplete.class, loginComplete -> this.selfName = loginComplete.selfName());
     }
 
+    /**
+     * @deprecated
+     */
     @Deprecated(forRemoval = true)
     public void on(EventHandler handler){
         this.api.on(handler);
     }
 
+    /**
+     * @deprecated
+     */
     @Deprecated(forRemoval = true)
     public void once(EventHandler handler){
         this.api.once(handler);

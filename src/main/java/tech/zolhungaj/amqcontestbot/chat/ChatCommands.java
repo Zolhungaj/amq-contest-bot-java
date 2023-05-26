@@ -91,14 +91,8 @@ public class ChatCommands {
 
     @PostConstruct
     public void init(){
-        api.on(command -> {
-            if(command instanceof GameChatMessage gameChatMessage){
-                this.handleMessage(gameChatMessage);
-            }else if (command instanceof GameChatUpdate gameChatUpdate){
-                gameChatUpdate.messages().forEach(this::handleMessage);
-            }
-            return true;
-        });
+        api.on(GameChatMessage.class, this::handleMessage);
+        api.on(GameChatUpdate.class, gameChatUpdate -> gameChatUpdate.messages().forEach(this::handleMessage));
         registerChatCommands();
     }
 

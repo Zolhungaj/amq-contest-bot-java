@@ -12,6 +12,7 @@ import tech.zolhungaj.amqapi.clientcommands.lobby.StartGame;
 import tech.zolhungaj.amqapi.clientcommands.roombrowser.HostRoom;
 import tech.zolhungaj.amqapi.servercommands.gameroom.NewPlayer;
 import tech.zolhungaj.amqapi.servercommands.gameroom.PlayerLeft;
+import tech.zolhungaj.amqapi.servercommands.gameroom.SpectatorJoined;
 import tech.zolhungaj.amqapi.servercommands.gameroom.lobby.PlayerChangedToSpectator;
 import tech.zolhungaj.amqapi.servercommands.gameroom.lobby.PlayerReadyChange;
 import tech.zolhungaj.amqapi.servercommands.gameroom.lobby.SpectatorChangedToPlayer;
@@ -53,45 +54,45 @@ public class LobbyManager {
 
     @PostConstruct
     public void init(){
-        api.on(command -> {
-            if(command instanceof LoginComplete loginComplete){
-                selfName = loginComplete.selfName();
-                currentSettings = gameMode.getNextSettings();
-                api.sendCommand(new HostRoom(currentSettings));
-                loginComplete.serverStatuses().forEach(serverStatus -> fileServerState.put(serverStatus.serverName(), serverStatus.online()));
-            }else if(command instanceof tech.zolhungaj.amqapi.servercommands.gameroom.lobby.HostGame hostGame){
-                this.players.clear();
-                this.spectators.clear();
-                this.queue.clear();
-                hostGame.players().stream()
-                        .map(this::newPlayerToLobbyPlayer)
-                        .forEach(lobbyPlayer -> this.players.put(lobbyPlayer.gamePlayerId(), lobbyPlayer));
-                inLobby = true;
-                gameId = hostGame.gameId();
-                moveToSpectator(selfName);
-            }else if(command instanceof NewPlayer newPlayer){
-                addPlayer(newPlayerToLobbyPlayer(newPlayer));
-            }else if(command instanceof SpectatorChangedToPlayer spectatorChangedToPlayer){
-                addPlayer(playerToLobbyPlayer(spectatorChangedToPlayer));
-                removeSpectator(spectatorChangedToPlayer.playerName());
-            }else if(command instanceof PlayerLeft playerLeft){
-                int gamePlayerId = playerLeft.player().gamePlayerId().orElse(-1);
-                removePlayer(gamePlayerId);
-            }else if(command instanceof PlayerChangedToSpectator toSpectator){
-                int gamePlayerId = toSpectator.playerDescription().gamePlayerId().orElse(-1);
-                removePlayer(gamePlayerId);
-                addSpectator(toSpectator.spectatorDescription().playerName());
-            }else if(command instanceof PlayerReadyChange playerReadyChange){
-                this.players.computeIfPresent(playerReadyChange.gamePlayerId(), (key, player) -> player.withReady(playerReadyChange.ready()));
-            }else if(command instanceof FileServerStatus fileServerStatus){
-                fileServerState.put(fileServerStatus.serverName(), fileServerStatus.online());
-                sendMessageAboutFileServers();
-            }
-            //TODO: queue
-            //TODO: game end or failed to open
-            //TODO: leave room
-            return true;
+        api.on(LoginComplete.class, loginComplete -> {
+            selfName = loginComplete.selfName();
+            currentSettings = gameMode.getNextSettings();
+            api.sendCommand(new HostRoom(currentSettings));
+            loginComplete.serverStatuses().forEach(serverStatus -> fileServerState.put(serverStatus.serverName(), serverStatus.online()));
         });
+        api.on(tech.zolhungaj.amqapi.servercommands.gameroom.lobby.HostGame.class, hostGame -> {
+            this.players.clear();
+            this.spectators.clear();
+            this.queue.clear();
+            hostGame.players().stream()
+                    .map(this::newPlayerToLobbyPlayer)
+                    .forEach(lobbyPlayer -> this.players.put(lobbyPlayer.gamePlayerId(), lobbyPlayer));
+            inLobby = true;
+            gameId = hostGame.gameId();
+            moveToSpectator(selfName);
+        });
+        api.on(NewPlayer.class, newPlayer -> addPlayer(newPlayerToLobbyPlayer(newPlayer)));
+        api.on(SpectatorChangedToPlayer.class, spectatorChangedToPlayer -> {
+            addPlayer(playerToLobbyPlayer(spectatorChangedToPlayer));
+            removeSpectator(spectatorChangedToPlayer.playerName());
+        });
+        api.on(PlayerLeft.class, playerLeft -> removePlayer(playerLeft.player().gamePlayerId().orElse(-1)));
+        api.on(SpectatorJoined.class, spectatorJoined -> addSpectator(spectatorJoined.playerName()));
+        api.on(PlayerChangedToSpectator.class, playerChangedToSpectator -> {
+            removePlayer(playerChangedToSpectator.playerDescription().gamePlayerId().orElse(-1));
+            addSpectator(playerChangedToSpectator.spectatorDescription().playerName());
+        });
+        api.on(PlayerReadyChange.class, playerReadyChange -> this.players.computeIfPresent(
+                playerReadyChange.gamePlayerId(),
+                (key, player) -> player.withReady(playerReadyChange.ready()))
+        );
+        api.on(FileServerStatus.class, fileServerStatus -> {
+            fileServerState.put(fileServerStatus.serverName(), fileServerStatus.online());
+            sendMessageAboutFileServers();
+        });
+        //TODO: queue
+        //TODO: game end or failed to open
+        //TODO: leave room
     }
 
     private void addPlayer(LobbyPlayer lobbyPlayer){
