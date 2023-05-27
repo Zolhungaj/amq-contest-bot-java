@@ -6,7 +6,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import tech.zolhungaj.amqapi.servercommands.gameroom.GameChatMessage;
 import tech.zolhungaj.amqapi.servercommands.gameroom.GameChatUpdate;
-import tech.zolhungaj.amqapi.servercommands.gameroom.NewPlayer;
+import tech.zolhungaj.amqapi.servercommands.gameroom.lobby.NewPlayer;
 import tech.zolhungaj.amqapi.servercommands.gameroom.SpectatorJoined;
 import tech.zolhungaj.amqcontestbot.ApiManager;
 

@@ -3,7 +3,7 @@ package tech.zolhungaj.amqcontestbot.chat;
 import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
-import tech.zolhungaj.amqapi.servercommands.gameroom.NewPlayer;
+import tech.zolhungaj.amqapi.servercommands.gameroom.lobby.NewPlayer;
 import tech.zolhungaj.amqapi.servercommands.gameroom.SpectatorJoined;
 import tech.zolhungaj.amqapi.servercommands.objects.PlayerAvatar;
 import tech.zolhungaj.amqcontestbot.ApiManager;

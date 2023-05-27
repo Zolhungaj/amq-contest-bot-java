@@ -7,7 +7,7 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Component;
 import tech.zolhungaj.amqapi.clientcommands.lobby.Kick;
 import tech.zolhungaj.amqapi.clientcommands.lobby.MovePlayerToSpectator;
-import tech.zolhungaj.amqapi.servercommands.gameroom.NewPlayer;
+import tech.zolhungaj.amqapi.servercommands.gameroom.lobby.NewPlayer;
 import tech.zolhungaj.amqapi.servercommands.gameroom.lobby.SpectatorChangedToPlayer;
 import tech.zolhungaj.amqcontestbot.ApiManager;
 import tech.zolhungaj.amqcontestbot.Util;

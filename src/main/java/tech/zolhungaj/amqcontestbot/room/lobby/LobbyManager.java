@@ -10,9 +10,10 @@ import tech.zolhungaj.amqapi.clientcommands.lobby.ChangeRoomSettings;
 import tech.zolhungaj.amqapi.clientcommands.lobby.MovePlayerToSpectator;
 import tech.zolhungaj.amqapi.clientcommands.lobby.StartGame;
 import tech.zolhungaj.amqapi.clientcommands.roombrowser.HostRoom;
-import tech.zolhungaj.amqapi.servercommands.gameroom.NewPlayer;
+import tech.zolhungaj.amqapi.servercommands.gameroom.lobby.NewPlayer;
 import tech.zolhungaj.amqapi.servercommands.gameroom.PlayerLeft;
 import tech.zolhungaj.amqapi.servercommands.gameroom.SpectatorJoined;
+import tech.zolhungaj.amqapi.servercommands.gameroom.lobby.GameHosted;
 import tech.zolhungaj.amqapi.servercommands.gameroom.lobby.PlayerChangedToSpectator;
 import tech.zolhungaj.amqapi.servercommands.gameroom.lobby.PlayerReadyChange;
 import tech.zolhungaj.amqapi.servercommands.gameroom.lobby.SpectatorChangedToPlayer;
@@ -58,7 +59,7 @@ public class LobbyManager {
             api.sendCommand(new HostRoom(currentSettings));
             loginComplete.serverStatuses().forEach(serverStatus -> fileServerState.put(serverStatus.serverName(), serverStatus.online()));
         });
-        api.on(tech.zolhungaj.amqapi.servercommands.gameroom.lobby.HostGame.class, hostGame -> {
+        api.on(GameHosted.class, hostGame -> {
             this.players.clear();
             this.spectators.clear();
             this.queue.clear();
