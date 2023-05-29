@@ -16,7 +16,6 @@ import tech.zolhungaj.amqapi.servercommands.gameroom.game.QuizOver;
 import tech.zolhungaj.amqapi.servercommands.gameroom.game.QuizReady;
 import tech.zolhungaj.amqapi.servercommands.gameroom.lobby.NewPlayer;
 import tech.zolhungaj.amqapi.servercommands.gameroom.PlayerLeft;
-import tech.zolhungaj.amqapi.servercommands.gameroom.SpectatorJoined;
 import tech.zolhungaj.amqapi.servercommands.gameroom.lobby.GameHosted;
 import tech.zolhungaj.amqapi.servercommands.gameroom.lobby.PlayerChangedToSpectator;
 import tech.zolhungaj.amqapi.servercommands.gameroom.lobby.PlayerReadyChange;
@@ -45,12 +44,9 @@ public class LobbyManager {
     private final ApiManager api;
     private final ChatController chatController;
     private final GameMode gameMode = new MasterOfTheSeasonsGameMode();
-    private GameSettings currentSettings = null;
     private int counter = 0;
     private boolean inLobby = false;
-    private int gameId = -1;
     private final Map<Integer, LobbyPlayer> players = new ConcurrentHashMap<>();
-    private final Set<String> spectators = new HashSet<>();
     private final Queue<String> queue = new ConcurrentLinkedQueue<>();
     private final Map<String, Boolean> fileServerState = new HashMap<>();
 
@@ -75,16 +71,14 @@ public class LobbyManager {
         api.on(PlayerLeft.class, this::playerLeft);
         api.on(PlayerChangedToSpectator.class, this::playerChangedToSpectator);
 
-        //spectators, is this needed?
-        api.on(SpectatorJoined.class, this::spectatorJoined);
-        api.on(SpectatorLeft.class, this::removeSpectator);
-
-        //TODO: queue for the failed to host state
+        //queue related events
+        api.on(SpectatorLeft.class, this::removeSpectator); //a leaving spectator leaves the queue
+        //TODO: queue join and leave, in someone decides to camp with ready off
     }
 
     private void loginComplete(LoginComplete loginComplete){
-        currentSettings = gameMode.getNextSettings();
-        api.sendCommand(new HostRoom(currentSettings));
+        GameSettings initialSettings = gameMode.getNextSettings();
+        api.sendCommand(new HostRoom(initialSettings));
         loginComplete.serverStatuses().forEach(this::updateFileServerStatus);
     }
 
@@ -93,15 +87,19 @@ public class LobbyManager {
         sendMessageAboutFileServers();
     }
 
+    private void sendMessageAboutFileServers(){
+        if(noFullFileServersOnline()){
+            chatController.send("lobby.full-file-servers-online.none");
+        }else{
+            chatController.send("lobby.full-file-servers-online.some");
+        }
+    }
+
     private void gameHosted(GameHosted gameHosted){
         this.players.clear();
-        this.spectators.clear();
         this.queue.clear();
-        gameHosted.players().stream()
-                .map(this::newPlayerToLobbyPlayer)
-                .forEach(lobbyPlayer -> this.players.put(lobbyPlayer.gamePlayerId(), lobbyPlayer));
+        gameHosted.players().forEach(this::newPlayer);
         inLobby = true;
-        gameId = gameHosted.gameId();
         moveToSpectator(api.getSelfName());
     }
 
@@ -112,9 +110,6 @@ public class LobbyManager {
     private void quizOver(QuizOver quizOver){
         this.queue.clear();
         this.queue.addAll(quizOver.playersInQueue());
-        this.spectators.clear();
-        List<String> newSpectators = quizOver.spectators().stream().map(SpectatorJoined::playerName).toList();
-        this.spectators.addAll(newSpectators);
         this.players.replaceAll((id, player) -> player.withInLobby(false));
         quizOver.players().forEach(this::newPlayer);
         onStartOfLobbyPhase();
@@ -155,7 +150,6 @@ public class LobbyManager {
 
     private void playerChangedToSpectator(PlayerChangedToSpectator playerChangedToSpectator){
         removePlayer(playerChangedToSpectator.playerDescription().gamePlayerId().orElse(-1));
-        addSpectator(playerChangedToSpectator.spectatorDescription().playerName());
     }
 
     private void removePlayer(int gamePlayerId){
@@ -183,26 +177,11 @@ public class LobbyManager {
                 0);
     }
 
-    private void spectatorJoined(SpectatorJoined spectatorJoined){
-        addSpectator(spectatorJoined.playerName());
-    }
-    private void addSpectator(String playerName){
-        spectators.add(playerName);
-    }
-
     private void removeSpectator(SpectatorLeft spectatorLeft){
-        spectators.remove(spectatorLeft.playerName());
+        removeSpectator(spectatorLeft.playerName());
     }
     private void removeSpectator(String playerName){
-        spectators.remove(playerName);
-    }
-
-    private void sendMessageAboutFileServers(){
-        if(noFullFileServersOnline()){
-            chatController.send("lobby.full-file-servers-online.none");
-        }else{
-            chatController.send("lobby.full-file-servers-online.some");
-        }
+        removeFromQueue(playerName);
     }
 
     private void addToQueue(String playerName){
@@ -361,9 +340,7 @@ public class LobbyManager {
     }
 
     private void leaveRoom(){
-        gameId = -1;
         players.clear();
-        spectators.clear();
         queue.clear();
         inLobby = false;
         counter = 0;
