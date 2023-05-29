@@ -10,6 +10,9 @@ import tech.zolhungaj.amqapi.clientcommands.lobby.ChangeRoomSettings;
 import tech.zolhungaj.amqapi.clientcommands.lobby.MovePlayerToSpectator;
 import tech.zolhungaj.amqapi.clientcommands.lobby.StartGame;
 import tech.zolhungaj.amqapi.clientcommands.roombrowser.HostRoom;
+import tech.zolhungaj.amqapi.servercommands.gameroom.game.GameStarting;
+import tech.zolhungaj.amqapi.servercommands.gameroom.game.QuizOver;
+import tech.zolhungaj.amqapi.servercommands.gameroom.game.QuizReady;
 import tech.zolhungaj.amqapi.servercommands.gameroom.lobby.NewPlayer;
 import tech.zolhungaj.amqapi.servercommands.gameroom.PlayerLeft;
 import tech.zolhungaj.amqapi.servercommands.gameroom.SpectatorJoined;
@@ -26,9 +29,7 @@ import tech.zolhungaj.amqcontestbot.gamemode.GameMode;
 import tech.zolhungaj.amqcontestbot.gamemode.MasterOfTheSeasonsGameMode;
 
 import java.util.*;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentLinkedQueue;
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.*;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
@@ -89,9 +90,10 @@ public class LobbyManager {
             fileServerState.put(fileServerStatus.serverName(), fileServerStatus.online());
             sendMessageAboutFileServers();
         });
+        api.on(GameStarting.class, gameStarting -> inLobby = false);
+        api.on(QuizOver.class, this::quizOver);
         //TODO: queue
-        //TODO: game end or failed to open
-        //TODO: leave room
+        //TODO: leave room (voluntarily or forced)
     }
 
     private void addPlayer(LobbyPlayer lobbyPlayer){
@@ -208,6 +210,34 @@ public class LobbyManager {
         incrementConsecutiveGames();
         api.sendCommand(new StartGame());
         inLobby = false;
+        handleFailedGameStart();
+    }
+
+    private void handleFailedGameStart(){
+        //in the event that we try to start the game, but no players are ready
+        //then the server will ignore our request completely, and we will never get a QuizReady event
+        CompletableFuture<Boolean> readyFuture = new CompletableFuture<>();
+        api.once(QuizReady.class, quizReady -> {
+            log.debug("Quiz ready, {}", quizReady);
+            readyFuture.complete(true);
+            return true;
+        });
+        api.once(QuizOver.class, quizOver -> {
+            //in the event that the game fails to start, but with a normal error we immediately get the quizOver event
+            if(!readyFuture.isDone()){ //guard since this event is also triggered when the game ends normally
+                log.debug("Quiz over early, {}", quizOver);
+                chatController.send("lobby.starting.failed.generic");
+                readyFuture.complete(false);
+            }
+            return true;
+        });
+        readyFuture.completeOnTimeout(false, 10, TimeUnit.SECONDS);
+        readyFuture.thenAccept(ready -> {
+            if(Boolean.FALSE.equals(ready)){
+                chatController.send("lobby.starting.failed.timeout");
+                onStartOfLobbyPhase();
+            }
+        });
     }
 
     private void sendCountdownBasedMessage(){
@@ -246,13 +276,18 @@ public class LobbyManager {
         });
     }
 
+    private void quizOver(QuizOver quizOver){
+        this.queue.clear();
+        this.queue.addAll(quizOver.playersInQueue());
+        onStartOfLobbyPhase();
+    }
+
     private void onStartOfLobbyPhase(){
         emptyQueueIfPossible();
         inLobby = true;
         cycleGameMode();
     }
 
-    //TODO: hookup, should happen after players and queue has been updated after game
     private void emptyQueueIfPossible(){
         final List<LobbyPlayer> playersEligibleForChanging = new ArrayList<>(this.players.values().stream()
                 .filter(LobbyPlayer::inLobby)
