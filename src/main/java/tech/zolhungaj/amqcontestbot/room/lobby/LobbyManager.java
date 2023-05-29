@@ -110,6 +110,7 @@ public class LobbyManager {
                 log.debug("Quiz over early, {}", quizOver);
                 chatController.send("lobby.starting.failed.generic");
                 readyFuture.complete(true); //true because the timeout did not trigger
+                counter = WAIT_TIME - 5; //shorten the countdown to make misses less boring
             }
             return true;
         });
