@@ -10,6 +10,7 @@ import tech.zolhungaj.amqapi.clientcommands.lobby.ChangeRoomSettings;
 import tech.zolhungaj.amqapi.clientcommands.lobby.MovePlayerToSpectator;
 import tech.zolhungaj.amqapi.clientcommands.lobby.StartGame;
 import tech.zolhungaj.amqapi.clientcommands.roombrowser.HostRoom;
+import tech.zolhungaj.amqapi.servercommands.gameroom.SpectatorLeft;
 import tech.zolhungaj.amqapi.servercommands.gameroom.game.GameStarting;
 import tech.zolhungaj.amqapi.servercommands.gameroom.game.QuizOver;
 import tech.zolhungaj.amqapi.servercommands.gameroom.game.QuizReady;
@@ -55,45 +56,83 @@ public class LobbyManager {
 
     @PostConstruct
     private void init(){
-        api.on(LoginComplete.class, loginComplete -> {
-            currentSettings = gameMode.getNextSettings();
-            api.sendCommand(new HostRoom(currentSettings));
-            loginComplete.serverStatuses().forEach(serverStatus -> fileServerState.put(serverStatus.serverName(), serverStatus.online()));
-        });
-        api.on(GameHosted.class, hostGame -> {
-            this.players.clear();
-            this.spectators.clear();
-            this.queue.clear();
-            hostGame.players().stream()
-                    .map(this::newPlayerToLobbyPlayer)
-                    .forEach(lobbyPlayer -> this.players.put(lobbyPlayer.gamePlayerId(), lobbyPlayer));
-            inLobby = true;
-            gameId = hostGame.gameId();
-            moveToSpectator(api.getSelfName());
-        });
-        api.on(NewPlayer.class, newPlayer -> addPlayer(newPlayerToLobbyPlayer(newPlayer)));
-        api.on(SpectatorChangedToPlayer.class, spectatorChangedToPlayer -> {
-            addPlayer(playerToLobbyPlayer(spectatorChangedToPlayer));
-            removeSpectator(spectatorChangedToPlayer.playerName());
-        });
-        api.on(PlayerLeft.class, playerLeft -> removePlayer(playerLeft.player().gamePlayerId().orElse(-1)));
-        api.on(SpectatorJoined.class, spectatorJoined -> addSpectator(spectatorJoined.playerName()));
-        api.on(PlayerChangedToSpectator.class, playerChangedToSpectator -> {
-            removePlayer(playerChangedToSpectator.playerDescription().gamePlayerId().orElse(-1));
-            addSpectator(playerChangedToSpectator.spectatorDescription().playerName());
-        });
-        api.on(PlayerReadyChange.class, playerReadyChange -> this.players.computeIfPresent(
-                playerReadyChange.gamePlayerId(),
-                (key, player) -> player.withReady(playerReadyChange.ready()))
-        );
-        api.on(FileServerStatus.class, fileServerStatus -> {
-            fileServerState.put(fileServerStatus.serverName(), fileServerStatus.online());
-            sendMessageAboutFileServers();
-        });
-        api.on(GameStarting.class, gameStarting -> inLobby = false);
+        //global state
+        api.on(LoginComplete.class, this::loginComplete);
+        api.on(FileServerStatus.class, this::updateFileServerStatus);
+
+        //state of room
+        api.on(GameHosted.class, this::gameHosted);
+        api.on(GameStarting.class, this::gameStarting);
         api.on(QuizOver.class, this::quizOver);
-        //TODO: queue
         //TODO: leave room (voluntarily or forced)
+
+        //status on present players
+        api.on(NewPlayer.class, this::newPlayer);
+        api.on(SpectatorChangedToPlayer.class, this::spectatorChangedToPlayer);
+        api.on(PlayerReadyChange.class, this::playerReadyChange);
+
+        //players leaving
+        api.on(PlayerLeft.class, this::playerLeft);
+        api.on(PlayerChangedToSpectator.class, this::playerChangedToSpectator);
+
+        //spectators, is this needed?
+        api.on(SpectatorJoined.class, this::spectatorJoined);
+        api.on(SpectatorLeft.class, this::removeSpectator);
+
+        //TODO: queue for the failed to host state
+    }
+
+    private void loginComplete(LoginComplete loginComplete){
+        currentSettings = gameMode.getNextSettings();
+        api.sendCommand(new HostRoom(currentSettings));
+        loginComplete.serverStatuses().forEach(this::updateFileServerStatus);
+    }
+
+    private void updateFileServerStatus(FileServerStatus fileServerStatus){
+        fileServerState.put(fileServerStatus.serverName(), fileServerStatus.online());
+        sendMessageAboutFileServers();
+    }
+
+    private void gameHosted(GameHosted gameHosted){
+        this.players.clear();
+        this.spectators.clear();
+        this.queue.clear();
+        gameHosted.players().stream()
+                .map(this::newPlayerToLobbyPlayer)
+                .forEach(lobbyPlayer -> this.players.put(lobbyPlayer.gamePlayerId(), lobbyPlayer));
+        inLobby = true;
+        gameId = gameHosted.gameId();
+        moveToSpectator(api.getSelfName());
+    }
+
+    private void gameStarting(GameStarting gameStarting){
+        this.inLobby = false;
+    }
+
+    private void quizOver(QuizOver quizOver){
+        this.queue.clear();
+        this.queue.addAll(quizOver.playersInQueue());
+        this.spectators.clear();
+        List<String> newSpectators = quizOver.spectators().stream().map(SpectatorJoined::playerName).toList();
+        this.spectators.addAll(newSpectators);
+        this.players.replaceAll((id, player) -> player.withInLobby(false));
+        quizOver.players().forEach(this::newPlayer);
+        onStartOfLobbyPhase();
+    }
+
+    private void onStartOfLobbyPhase(){
+        emptyQueueIfPossible();
+        inLobby = true;
+        cycleGameMode();
+    }
+
+    private void newPlayer(NewPlayer player){
+        addPlayer(newPlayerToLobbyPlayer(player));
+    }
+
+    private void spectatorChangedToPlayer(SpectatorChangedToPlayer spectatorChangedToPlayer){
+        addPlayer(playerToLobbyPlayer(spectatorChangedToPlayer));
+        removeSpectator(spectatorChangedToPlayer.playerName());
     }
 
     private void addPlayer(LobbyPlayer lobbyPlayer){
@@ -101,6 +140,22 @@ public class LobbyManager {
         int consecutiveGames = this.players.getOrDefault(lobbyPlayer.gamePlayerId(), lobbyPlayer).consecutiveGames();
         this.players.put(lobbyPlayer.gamePlayerId(), lobbyPlayer.withConsecutiveGames(consecutiveGames));
         log.info("{}", players);
+    }
+
+    private void playerReadyChange(PlayerReadyChange playerReadyChange){
+        this.players.computeIfPresent(
+                playerReadyChange.gamePlayerId(),
+                (key, player) -> player.withReady(playerReadyChange.ready())
+        );
+    }
+
+    private void playerLeft(PlayerLeft playerLeft){
+        removePlayer(playerLeft.player().gamePlayerId().orElse(-1));
+    }
+
+    private void playerChangedToSpectator(PlayerChangedToSpectator playerChangedToSpectator){
+        removePlayer(playerChangedToSpectator.playerDescription().gamePlayerId().orElse(-1));
+        addSpectator(playerChangedToSpectator.spectatorDescription().playerName());
     }
 
     private void removePlayer(int gamePlayerId){
@@ -128,10 +183,16 @@ public class LobbyManager {
                 0);
     }
 
+    private void spectatorJoined(SpectatorJoined spectatorJoined){
+        addSpectator(spectatorJoined.playerName());
+    }
     private void addSpectator(String playerName){
         spectators.add(playerName);
     }
 
+    private void removeSpectator(SpectatorLeft spectatorLeft){
+        spectators.remove(spectatorLeft.playerName());
+    }
     private void removeSpectator(String playerName){
         spectators.remove(playerName);
     }
@@ -274,18 +335,6 @@ public class LobbyManager {
                 return player.withConsecutiveGames(0);
             }
         });
-    }
-
-    private void quizOver(QuizOver quizOver){
-        this.queue.clear();
-        this.queue.addAll(quizOver.playersInQueue());
-        onStartOfLobbyPhase();
-    }
-
-    private void onStartOfLobbyPhase(){
-        emptyQueueIfPossible();
-        inLobby = true;
-        cycleGameMode();
     }
 
     private void emptyQueueIfPossible(){
