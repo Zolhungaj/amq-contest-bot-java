@@ -109,7 +109,7 @@ public class LobbyManager {
             if(!readyFuture.isDone()){ //guard since this event is also triggered when the game ends normally
                 log.debug("Quiz over early, {}", quizOver);
                 chatController.send("lobby.starting.failed.generic");
-                readyFuture.complete(false);
+                readyFuture.complete(true); //true because the timeout did not trigger
             }
             return true;
         });
