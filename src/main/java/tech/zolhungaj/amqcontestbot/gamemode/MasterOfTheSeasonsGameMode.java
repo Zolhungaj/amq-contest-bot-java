@@ -1,9 +1,6 @@
 package tech.zolhungaj.amqcontestbot.gamemode;
 
-import tech.zolhungaj.amqapi.sharedobjects.gamesettings.GameSettings;
-import tech.zolhungaj.amqapi.sharedobjects.gamesettings.GuessTime;
-import tech.zolhungaj.amqapi.sharedobjects.gamesettings.SongTypeSelection;
-import tech.zolhungaj.amqapi.sharedobjects.gamesettings.Vintage;
+import tech.zolhungaj.amqapi.sharedobjects.gamesettings.*;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
@@ -17,6 +14,7 @@ public class MasterOfTheSeasonsGameMode extends AbstractSpeedRunGameMode {
             .toBuilder()
             .guessTime(new GuessTime(15))
             .numberOfSongs(SONG_COUNT)
+            .songSelection(SongSelection.of(SongSelection.SelectionIdentifier.RANDOM, SONG_COUNT))
             .roomSize(40)
             .songTypeSelection(SongTypeSelection.of(SONG_COUNT, SongTypeSelection.SongType.ALL))
             .build();
