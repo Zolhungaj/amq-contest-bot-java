@@ -30,16 +30,23 @@ public class LobbyManager {
     private final ChatController chatController;
     private boolean inStartPhase = false;
     private int counter = 0;
+    private int changeGameModeCounter = 0;
 
     @Scheduled(fixedRate = 1, timeUnit = TimeUnit.SECONDS)
     public void updateState(){
         if(!stateManager.isInLobby() || inStartPhase){
             counter = 0;
+            changeGameModeCounter = 0;
             return;
         }
+        changeGameModeCounter++;
         if(stateManager.getPlayerCount() == 0){
             counter = 0;
             stateManager.resetConsecutiveGames();
+            if(changeGameModeCounter >= WAIT_TIME){
+                changeGameModeCounter = 0;
+                stateManager.cycleGameMode();
+            }
             return;
         }
         if(stateManager.noFullFileServersOnline()){

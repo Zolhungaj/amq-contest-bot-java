@@ -239,7 +239,7 @@ public class LobbyStateManager {
         api.sendCommand(new MovePlayerToSpectator(playerName));
     }
 
-    private void cycleGameMode(){
+    public void cycleGameMode(){
         GameSettings nextSettings = gameMode.getNextSettings();
         api.sendCommand(new ChangeRoomSettings(nextSettings));
     }
