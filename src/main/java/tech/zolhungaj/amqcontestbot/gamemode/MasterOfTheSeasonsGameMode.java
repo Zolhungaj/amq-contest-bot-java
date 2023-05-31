@@ -9,7 +9,7 @@ import java.util.Random;
 import java.util.random.RandomGenerator;
 
 public class MasterOfTheSeasonsGameMode extends AbstractSpeedRunGameMode {
-    private static final int SONG_COUNT = 100;
+    private static final int SONG_COUNT = 20;
     private static final GameSettings BASE_GAME_SETTINGS = GameSettings.DEFAULT
             .toBuilder()
             .guessTime(new GuessTime(15))
