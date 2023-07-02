@@ -14,4 +14,8 @@ public class PlayerService {
     public Optional<PlayerEntity> getPlayer(String originalName){
         return repository.findByOriginalNameIgnoreCase(originalName);
     }
+
+    public void save(PlayerEntity playerEntity){
+        repository.save(playerEntity);
+    }
 }
