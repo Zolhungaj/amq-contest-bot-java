@@ -6,7 +6,7 @@ import org.springframework.stereotype.Component;
 import tech.zolhungaj.amqapi.servercommands.globalstate.LoginComplete;
 import tech.zolhungaj.amqcontestbot.ApiManager;
 import tech.zolhungaj.amqcontestbot.chat.ChatCommands;
-import tech.zolhungaj.amqcontestbot.repository.PlayerService;
+import tech.zolhungaj.amqcontestbot.database.service.ModerationService;
 
 import java.util.concurrent.CompletableFuture;
 
@@ -15,7 +15,7 @@ import java.util.concurrent.CompletableFuture;
 public class AdministratorManager {
     private final ChatCommands chatCommands;
     private final ApiManager api;
-    private final PlayerService playerService;
+    private final ModerationService moderationService;
     private final NameResolver nameResolver;
     @PostConstruct
     private void init(){
@@ -63,7 +63,7 @@ public class AdministratorManager {
     private void addAdmin(String sender, String receiver){
         String senderTrueName = nameResolver.resolveOriginalName(sender);
         String receiverTrueName = nameResolver.resolveOriginalName(receiver);
-        playerService.addAdmin(senderTrueName, receiverTrueName);
+        moderationService.addAdmin(senderTrueName, receiverTrueName);
     }
 
     private void removeAdmin(String remover, String admin){
@@ -75,18 +75,18 @@ public class AdministratorManager {
         }
         String removerTrueName = nameResolver.resolveOriginalName(remover);
         String adminTrueName = nameResolver.resolveOriginalName(admin);
-        playerService.removeAdmin(removerTrueName, adminTrueName);
+        moderationService.removeAdmin(removerTrueName, adminTrueName);
     }
 
     private void addModerator(String sender, String receiver){
         String senderTrueName = nameResolver.resolveOriginalName(sender);
         String receiverTrueName = nameResolver.resolveOriginalName(receiver);
-        playerService.addModerator(senderTrueName, receiverTrueName);
+        moderationService.addModerator(senderTrueName, receiverTrueName);
     }
 
     private void removeModerator(String remover, String moderator){
         String removerTrueName = nameResolver.resolveOriginalName(remover);
         String moderatorTrueName = nameResolver.resolveOriginalName(moderator);
-        playerService.removeModerator(removerTrueName, moderatorTrueName);
+        moderationService.removeModerator(removerTrueName, moderatorTrueName);
     }
 }

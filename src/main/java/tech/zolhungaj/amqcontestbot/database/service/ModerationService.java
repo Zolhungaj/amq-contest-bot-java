@@ -1,9 +1,12 @@
-package tech.zolhungaj.amqcontestbot.repository;
+package tech.zolhungaj.amqcontestbot.database.service;
 
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 @Service
-public class PlayerService {
+@RequiredArgsConstructor
+public class ModerationService {
+    private final PlayerService playerService;
     public void ban(String originalName){
         //TODO:implement
     }
@@ -38,9 +41,5 @@ public class PlayerService {
 
     public void removeModerator(String remover, String moderator){
         //TODO: implement
-    }
-
-    public Object getPlayer(String originalName){
-        return new Object();
     }
 }

@@ -5,7 +5,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import tech.zolhungaj.amqcontestbot.chat.ChatCommands;
 import tech.zolhungaj.amqcontestbot.chat.ChatController;
-import tech.zolhungaj.amqcontestbot.repository.PlayerService;
+import tech.zolhungaj.amqcontestbot.database.service.PlayerService;
 
 @Component
 @RequiredArgsConstructor

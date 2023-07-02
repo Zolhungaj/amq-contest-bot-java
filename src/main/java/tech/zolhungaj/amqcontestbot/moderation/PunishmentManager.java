@@ -8,7 +8,7 @@ import tech.zolhungaj.amqapi.servercommands.gameroom.lobby.NewPlayer;
 import tech.zolhungaj.amqapi.servercommands.gameroom.SpectatorJoined;
 import tech.zolhungaj.amqcontestbot.ApiManager;
 import tech.zolhungaj.amqcontestbot.chat.ChatCommands;
-import tech.zolhungaj.amqcontestbot.repository.PlayerService;
+import tech.zolhungaj.amqcontestbot.database.service.ModerationService;
 
 import java.util.Collections;
 import java.util.HashSet;
@@ -19,7 +19,7 @@ import java.util.Set;
 public class PunishmentManager {
     private final ApiManager api;
     private final NameResolver nameResolver;
-    private final PlayerService playerService;
+    private final ModerationService moderationService;
     private final ChatCommands chatCommands;
 
     private final Set<String> kickedThisSession = Collections.synchronizedSet(new HashSet<>());
@@ -90,8 +90,8 @@ public class PunishmentManager {
                 .thenAccept(this::banByOriginalName);
     }
     private void banByOriginalName(String originalName){
-        if(!playerService.isModerator(originalName)){
-            playerService.ban(originalName);
+        if(!moderationService.isModerator(originalName)){
+            moderationService.ban(originalName);
         }
     }
     private void unban(String nickname){
@@ -101,13 +101,13 @@ public class PunishmentManager {
     }
 
     private void unbanByOriginalName(String originalName){
-        playerService.unban(originalName);
+        moderationService.unban(originalName);
     }
 
     public void kick(String nickname){
         nameResolver.resolveOriginalNameAsync(nickname)
                 .thenAccept(originalName -> {
-                    if(!playerService.isModerator(originalName)){
+                    if(!moderationService.isModerator(originalName)){
                         kickedThisSession.add(originalName);
                         kickInternal(nickname);
                     }
@@ -121,7 +121,7 @@ public class PunishmentManager {
 
     private void handleJoin(String nickname){
         nameResolver.resolveOriginalNameAsync(nickname).thenAccept(originalName -> {
-            if(kickedThisSession.contains(originalName) || playerService.isBanned(originalName)){
+            if(kickedThisSession.contains(originalName) || moderationService.isBanned(originalName)){
                 kickInternal(nickname);
             }
         });

@@ -8,7 +8,7 @@ import tech.zolhungaj.amqapi.servercommands.gameroom.SpectatorJoined;
 import tech.zolhungaj.amqapi.servercommands.objects.PlayerAvatar;
 import tech.zolhungaj.amqcontestbot.ApiManager;
 import tech.zolhungaj.amqcontestbot.moderation.NameResolver;
-import tech.zolhungaj.amqcontestbot.repository.PlayerService;
+import tech.zolhungaj.amqcontestbot.database.service.PlayerService;
 
 @Component
 @RequiredArgsConstructor

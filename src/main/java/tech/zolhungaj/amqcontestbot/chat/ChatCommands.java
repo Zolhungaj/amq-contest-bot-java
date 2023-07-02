@@ -8,8 +8,8 @@ import org.springframework.stereotype.Component;
 import tech.zolhungaj.amqapi.servercommands.gameroom.GameChatMessage;
 import tech.zolhungaj.amqapi.servercommands.gameroom.GameChatUpdate;
 import tech.zolhungaj.amqcontestbot.ApiManager;
+import tech.zolhungaj.amqcontestbot.database.service.ModerationService;
 import tech.zolhungaj.amqcontestbot.moderation.NameResolver;
-import tech.zolhungaj.amqcontestbot.repository.PlayerService;
 
 import java.util.*;
 import java.util.concurrent.Executor;
@@ -33,7 +33,7 @@ public class ChatCommands {
 
     private final ChatController chatController;
     private final NameResolver nameResolver;
-    private final PlayerService playerService;
+    private final ModerationService moderationService;
     private final ApiManager api;
 
     public void register(BiConsumer<String, List<String>> handler, String primaryCommandName, String... aliases){
@@ -162,7 +162,7 @@ public class ChatCommands {
                     case NONE -> command.handler().accept(sender, arguments);
                     case MODERATOR -> {
                         String originalName = nameResolver.resolveOriginalName(sender);
-                        if(playerService.isModerator(originalName) || playerService.isAdmin(originalName)){
+                        if(moderationService.isModerator(originalName) || moderationService.isAdmin(originalName)){
                             command.handler().accept(sender, arguments);
                         }else{
                             throw new IllegalArgumentException("Must be moderator");
@@ -170,7 +170,7 @@ public class ChatCommands {
                     }
                     case ADMIN -> {
                         String originalName = nameResolver.resolveOriginalName(sender);
-                        if(playerService.isAdmin(originalName)){
+                        if(moderationService.isAdmin(originalName)){
                             command.handler().accept(sender, arguments);
                         }else{
                             throw new IllegalArgumentException("Must be admin");
