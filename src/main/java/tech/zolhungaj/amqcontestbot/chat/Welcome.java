@@ -49,11 +49,11 @@ public class Welcome {
         if(player.isEmpty()){
             chatController.send("welcome.new.player", nickname);
             playerEntity = new PlayerEntity();
+            playerEntity.setOriginalName(originalName);
         }else{
             playerEntity = player.get();
             quipGenerator.commentOnPlayer(playerEntity, nickname, currentLevel, avatar, false);
         }
-        playerEntity.setOriginalName(originalName);
         playerEntity.setLevel(currentLevel);
         playerEntity.setAvatar(avatar);
         playerService.save(playerEntity);
