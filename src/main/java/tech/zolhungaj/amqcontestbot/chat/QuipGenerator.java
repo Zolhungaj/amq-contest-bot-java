@@ -3,11 +3,15 @@ package tech.zolhungaj.amqcontestbot.chat;
 import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
+import tech.zolhungaj.amqapi.servercommands.gameroom.game.AnswerResults;
 import tech.zolhungaj.amqapi.servercommands.gameroom.lobby.PlayerChangedToSpectator;
 import tech.zolhungaj.amqapi.servercommands.objects.PlayerAvatar;
+import tech.zolhungaj.amqapi.servercommands.objects.SongInfo;
 import tech.zolhungaj.amqcontestbot.ApiManager;
 import tech.zolhungaj.amqcontestbot.database.model.PlayerEntity;
 
+import java.util.List;
+import java.util.Optional;
 import java.util.random.RandomGenerator;
 
 /** More of a for-fun module, occasionally comments on songs and player achievements.
@@ -31,6 +35,7 @@ public class QuipGenerator {
             }
         }, ChatCommands.Grant.MODERATOR, "setchattiness");
         api.on(PlayerChangedToSpectator.class, spectator -> commentOnPlayerToSpectator(spectator.spectatorDescription().playerName()));
+        api.on(AnswerResults.class, this::quipAboutAnime);
     }
 
     private void commentOnPlayerToSpectator(String nickname){
@@ -39,9 +44,33 @@ public class QuipGenerator {
         }
     }
 
-    private void quipPlaceholder(){
+    private void quipAboutAnime(AnswerResults answerResults){
         if(shouldTrigger()){
-            chatController.send("quip");
+            Optional<SongInfo> songInfo = Optional.ofNullable(answerResults).map(AnswerResults::songInfo);
+            List<String> names = songInfo.map(SongInfo::alternativeAnimeNames).orElse(List.of());
+            /*
+            * Table of probabilities:
+            * anime name: 50% (1/2)
+            * anime genre: 16.66% (1/3 /2)
+            * anime tag: 16.66% (1/3 /2)
+            * vintage: 16.66% (1/3 /2)
+            * In the event that one is absent its probability is redistributed to the others after it on the list.
+            * If all are absent a generic remark is made instead.
+            * */
+            List<String> genres = songInfo.map(SongInfo::animeGenre).orElse(List.of());
+            List<String> tags = songInfo.map(SongInfo::animeTags).orElse(List.of());
+            Optional<String> vintage = songInfo.map(SongInfo::vintage);
+            if(!names.isEmpty() && randomGenerator.nextDouble() > 0.5){
+                chatController.send("quip.anime.name", names.get(randomGenerator.nextInt(names.size())));
+            }else if(!genres.isEmpty() && randomGenerator.nextDouble() > 0.333){
+                chatController.send("quip.anime.genre", genres.get(randomGenerator.nextInt(genres.size())));
+            }else if(!tags.isEmpty() && randomGenerator.nextDouble() > 0.5){
+                chatController.send("quip.anime.tag", tags.get(randomGenerator.nextInt(tags.size())));
+            }else if(vintage.isPresent()){
+                chatController.send("quip.anime.vintage", vintage.get());
+            }else{
+                chatController.send("quip.generic");
+            }
         }
     }
 
@@ -133,4 +162,5 @@ public class QuipGenerator {
     private boolean shouldTrigger(int divider){
         return randomGenerator.nextDouble() >= (1.0 - chattiness/divider);
     }
+
 }
