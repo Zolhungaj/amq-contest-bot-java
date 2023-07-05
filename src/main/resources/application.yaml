@@ -9,3 +9,6 @@ bot:
     allow-guests: true
     min-level: 0
     max-level: 9001
+spring:
+  datasource:
+    driver-class-name: org.postgresql.Driver
