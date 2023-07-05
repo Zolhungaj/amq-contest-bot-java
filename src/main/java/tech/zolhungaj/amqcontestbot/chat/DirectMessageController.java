@@ -7,8 +7,11 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import tech.zolhungaj.amqapi.clientcommands.social.SendDirectMessage;
 import tech.zolhungaj.amqcontestbot.ApiManager;
+import tech.zolhungaj.amqcontestbot.database.service.InternationalisationService;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.TimeUnit;
 
@@ -22,9 +25,12 @@ public class DirectMessageController {
     private final ApiManager api;
     private final ChatController chatController;
     private final FriendModule friendModule;
-    private final MessageService messageService;
+    private final InternationalisationService internationalisationService;
     private final ConcurrentLinkedQueue<DM> pendingMessages = new ConcurrentLinkedQueue<>();
 
+    private final Map<String, String> userLanguageChoice = new HashMap<>();
+    private final Map<String, String> userSubLanguageChoice = new HashMap<>();
+    //TODO: add a way to change language and sublanguage, and save it to the database
     @PostConstruct
     private void init(){
         api.on(command -> {
@@ -46,11 +52,13 @@ public class DirectMessageController {
         return send(recipient, i18nCanonicalName, List.of(arguments));
     }
     public List<DM> send(String recipient, String i18nCanonicalName, List<Object> arguments){
-        String message = messageService.getMessage(i18nCanonicalName, arguments);
+        String language = userLanguageChoice.getOrDefault(recipient, "en");
+        String subLanguage = userSubLanguageChoice.getOrDefault(recipient, "gb");
+        String message = internationalisationService.getMessage(i18nCanonicalName, language, subLanguage, arguments);
         return sendRaw(recipient, message);
     }
     public List<DM> sendRaw(String recipient, String message){
-        String censoredMessage = messageService.censor(message);
+        String censoredMessage = internationalisationService.censor(message);
         final List<String> messageChunked = chunkMessageToFitLimits(censoredMessage, MESSAGE_LIMIT);
         final List<DM> dmList = messageChunked.stream().map(msg -> new DM(recipient, msg)).toList();
         log.info("Queueing DM '{}' to {}", censoredMessage, recipient);
