@@ -60,11 +60,11 @@ public class QuipGenerator {
             List<String> genres = songInfo.map(SongInfo::animeGenre).orElse(List.of());
             List<String> tags = songInfo.map(SongInfo::animeTags).orElse(List.of());
             Optional<String> vintage = songInfo.map(SongInfo::vintage);
-            if(!names.isEmpty() && randomGenerator.nextDouble() > 0.5){
+            if(!names.isEmpty() && randomGenerator.nextInt(2) == 0){
                 chatController.send("quip.anime.name", names.get(randomGenerator.nextInt(names.size())));
-            }else if(!genres.isEmpty() && randomGenerator.nextDouble() > 0.333){
+            }else if(!genres.isEmpty() && randomGenerator.nextInt(3) == 0){
                 chatController.send("quip.anime.genre", genres.get(randomGenerator.nextInt(genres.size())));
-            }else if(!tags.isEmpty() && randomGenerator.nextDouble() > 0.5){
+            }else if(!tags.isEmpty() && randomGenerator.nextInt(2) == 0){
                 chatController.send("quip.anime.tag", tags.get(randomGenerator.nextInt(tags.size())));
             }else if(vintage.isPresent()){
                 chatController.send("quip.anime.vintage", vintage.get());
