@@ -117,7 +117,7 @@ public class ChatCommands {
     private void help(){
         Set<Command> commands = new HashSet<>(registeredCommands.values());
         List<String> commandNames = commands.stream().map(Command::commandName).toList();
-        chatController.send("command_list", String.join(", ", commandNames));
+        chatController.send("chat-commands.help", String.join(", ", commandNames));
     }
     private void help(String commandName){
         Command command = registeredCommands.get(commandName);
@@ -143,7 +143,7 @@ public class ChatCommands {
     private void listAliases(String commandName){
         Command command = registeredCommands.get(commandName);
         if(command != null){
-            chatController.send("command_alias_list", command.commandName, command.aliasesToString());
+            chatController.send("chat-commands.alias", command.commandName, command.aliasesToString());
         }else{
             chatController.send(UNKNOWN_COMMAND_I18N_NAME);
         }
@@ -193,13 +193,13 @@ public class ChatCommands {
             return String.join(", ", aliases);
         }
         public String i18nCanonicalName(){
-            return "command_".concat(commandName);
+            return "command.".concat(commandName);
         }
         public String i18nCanonicalNameDescription(){
-            return i18nCanonicalName().concat("_description");
+            return i18nCanonicalName().concat(".description");
         }
         public String i18nCanonicalNameUsage(){
-            return i18nCanonicalName().concat("_usage");
+            return i18nCanonicalName().concat(".usage");
         }
     }
 

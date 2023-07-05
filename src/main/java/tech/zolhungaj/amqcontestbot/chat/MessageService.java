@@ -14,7 +14,7 @@ public class MessageService {
         String message = getMessageForCanonicalName(i18nCanonicalName);
         for(var i = 0; i < arguments.size(); i++){
             String search = "%" + (i+1) + "%";
-            message = message.replaceAll(search, arguments.get(i).toString());
+            message = message.replaceAll(search, String.valueOf(arguments.get(i)));
         }
         return message;
     }

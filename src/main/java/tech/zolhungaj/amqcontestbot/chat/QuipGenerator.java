@@ -40,7 +40,7 @@ public class QuipGenerator {
 
     private void commentOnPlayerToSpectator(String nickname){
         if(shouldTrigger(8)){
-            chatController.send("player.to.spectator", nickname);
+            chatController.send("quip.player-to-spectator", nickname);
         }
     }
 
@@ -80,7 +80,7 @@ public class QuipGenerator {
         }
         if(wasInRoom){
             if(shouldTrigger(16)){
-                chatController.send("welcome.spectator-to-player", nickname);
+                chatController.send("quip.spectator-to-player", nickname);
             }
         }else{
             chatController.send("welcome.returning.player", nickname);
@@ -128,7 +128,7 @@ public class QuipGenerator {
         }else if (tens > 0){
             chatController.send("welcome.milestone.tens" + postfix, nickname, tens);
         }else if (difference > 1){
-            chatController.send("welcome.milestone.multiple" + postfix, nickname, previousLevel, currentLevel);
+            chatController.send("welcome.milestone.multiple" + postfix, nickname, difference);
         }else{
             chatController.send("welcome.milestone.single" + postfix, nickname);
         }
