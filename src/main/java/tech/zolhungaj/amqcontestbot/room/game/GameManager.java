@@ -4,10 +4,20 @@ import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
+import tech.zolhungaj.amqapi.servercommands.gameroom.game.AnswerResults;
+import tech.zolhungaj.amqapi.servercommands.gameroom.game.GameStarting;
+import tech.zolhungaj.amqapi.servercommands.gameroom.game.PlayNextSong;
+import tech.zolhungaj.amqapi.servercommands.gameroom.game.PlayersAnswered;
 import tech.zolhungaj.amqapi.servercommands.globalstate.LoginComplete;
+import tech.zolhungaj.amqapi.servercommands.objects.PlayerAnswerResult;
 import tech.zolhungaj.amqcontestbot.ApiManager;
+import tech.zolhungaj.amqcontestbot.database.model.SongEntity;
+import tech.zolhungaj.amqcontestbot.database.service.SongService;
 
+import java.time.Duration;
+import java.time.Instant;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 @Slf4j
@@ -15,24 +25,47 @@ import java.util.Map;
 @RequiredArgsConstructor
 public class GameManager {
     private final ApiManager api;
+    private final SongService songService;
     private final Map<Integer, GameEntity> contestants = new HashMap<>();
 
     /** map over players contained in contestants, used to update disconnects*/
     private final Map<Integer, PlayerInformation> players = new HashMap<>();
-    private final Map<Integer, Long> playerAnswerTimes = new HashMap<>();
+    private final Map<Integer, Duration> playerAnswerTimes = new HashMap<>();
+
+    private Instant roundStartTime;
     private boolean inGame = false;
+    private Mode mode = Mode.PLAYER;//TODO hook up
+
+    private enum Mode{
+        TEAM,
+        PLAYER
+    }
 
     @PostConstruct
     private void init(){
         api.on(LoginComplete.class, loginComplete -> reset());
-        //TODO: game start
+        api.on(GameStarting.class, this::startGame);
         //TODO:game end, including incorrect end
-        //TODO:round start
-        //TODO:answer time
         //TODO:disconnect
+        api.on(AnswerResults.class, this::answerResults);
+        api.on(PlayNextSong.class, playNextSong -> {
+            roundStartTime = Instant.now();
+        });
+        api.on(PlayersAnswered.class, playersAnswered -> {
+            Instant now = Instant.now();
+            if(inGame){
+                playersAnswered.gamePlayerIds().forEach(gamePlayerId -> {
+                    if(players.containsKey(gamePlayerId)){
+                        playerAnswerTimes.put(gamePlayerId, Duration.between(roundStartTime, now));
+                    }else{
+                        log.error("Unknown gamePlayerId {}", gamePlayerId);
+                    }
+                });
+            }
+        });
     }
 
-    private void startGame(Object info){
+    private void startGame(GameStarting info){
         reset();
         inGame = true;
     }
@@ -44,6 +77,37 @@ public class GameManager {
         }else{
             log.error("Unknown gamePlayerId {}", gamePlayerId);
         }
+    }
+
+    private void answerResults(AnswerResults answerResults){
+        //songs are worth tracking regardless of whether a game is in progress
+        SongEntity songEntity = songService.getSongEntityFromSongInfo(answerResults.songInfo());
+        if(!inGame){
+            return;
+        }
+        switch (mode){
+            case PLAYER -> answerResults.players().forEach(player -> recordAnswerResultsPerPlayer(player, songEntity));
+            case TEAM -> recordAnswerResultsPerTeam(answerResults.players(), songEntity);
+        }
+    }
+
+    private void recordAnswerResultsPerPlayer(PlayerAnswerResult answerResult, SongEntity songEntity){
+        GameEntity gameEntity = contestants.get(answerResult.gamePlayerId());
+        if(gameEntity == null){
+            log.error("gamePlayerId not in contestants {}, {}", answerResult.gamePlayerId(), answerResult);
+            return;
+        }
+        if(answerResult.correct()){
+            //TODO: different behaviour for different modes
+            gameEntity.incrementScore();
+            gameEntity.incrementCorrectCount();
+        }else{
+            gameEntity.incrementWrongCount();
+        }
+    }
+
+    private void recordAnswerResultsPerTeam(List<PlayerAnswerResult> answerResults, SongEntity songEntity){
+        //TODO
     }
 
     private void reset(){
