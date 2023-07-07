@@ -162,7 +162,7 @@ public class ChatCommands {
                     case NONE -> command.handler().accept(sender, arguments);
                     case MODERATOR -> {
                         String originalName = nameResolver.resolveOriginalName(sender);
-                        if(moderationService.isModerator(originalName) || moderationService.isAdmin(originalName)){
+                        if(moderationService.isModerator(originalName) || moderationService.isAdmin(originalName) || moderationService.isOwner(originalName)){
                             command.handler().accept(sender, arguments);
                         }else{
                             throw new IllegalArgumentException("Must be moderator");
@@ -170,10 +170,18 @@ public class ChatCommands {
                     }
                     case ADMIN -> {
                         String originalName = nameResolver.resolveOriginalName(sender);
-                        if(moderationService.isAdmin(originalName)){
+                        if(moderationService.isAdmin(originalName) || moderationService.isOwner(originalName)){
                             command.handler().accept(sender, arguments);
                         }else{
                             throw new IllegalArgumentException("Must be admin");
+                        }
+                    }
+                    case OWNER -> {
+                        String originalName = nameResolver.resolveOriginalName(sender);
+                        if(moderationService.isOwner(originalName)){
+                            command.handler().accept(sender, arguments);
+                        }else{
+                            throw new IllegalArgumentException("Must be owner");
                         }
                     }
                 }
@@ -206,6 +214,7 @@ public class ChatCommands {
     public enum Grant{
         NONE,
         MODERATOR,
-        ADMIN
+        ADMIN,
+        OWNER
     }
 }
