@@ -26,7 +26,7 @@ import java.util.Map;
 public class GameManager {
     private final ApiManager api;
     private final SongService songService;
-    private final Map<Integer, GameEntity> contestants = new HashMap<>();
+    private final Map<Integer, GameContestant> contestants = new HashMap<>();
 
     /** map over players contained in contestants, used to update disconnects*/
     private final Map<Integer, PlayerInformation> players = new HashMap<>();
@@ -92,17 +92,17 @@ public class GameManager {
     }
 
     private void recordAnswerResultsPerPlayer(PlayerAnswerResult answerResult, SongEntity songEntity){
-        GameEntity gameEntity = contestants.get(answerResult.gamePlayerId());
-        if(gameEntity == null){
+        GameContestant gameContestant = contestants.get(answerResult.gamePlayerId());
+        if(gameContestant == null){
             log.error("gamePlayerId not in contestants {}, {}", answerResult.gamePlayerId(), answerResult);
             return;
         }
         if(answerResult.correct()){
             //TODO: different behaviour for different modes
-            gameEntity.incrementScore();
-            gameEntity.incrementCorrectCount();
+            gameContestant.incrementScore();
+            gameContestant.incrementCorrectCount();
         }else{
-            gameEntity.incrementWrongCount();
+            gameContestant.incrementWrongCount();
         }
     }
 

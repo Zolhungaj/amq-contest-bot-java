@@ -7,7 +7,7 @@ import lombok.Setter;
 @Getter
 @Setter
 @RequiredArgsConstructor
-public final class GamePlayer extends AbstractGameEntity implements PlayerInformation {
+public final class ContestantPlayer extends AbstractGameContestant implements PlayerInformation {
     private final int gamePlayerId;
     private final String playerName;
     private boolean disconnected = false;

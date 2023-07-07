@@ -7,7 +7,7 @@ import java.util.List;
 
 @Getter
 @RequiredArgsConstructor
-public final class GameTeam extends AbstractGameEntity implements TeamIdentifier {
+public final class ContestantTeam extends AbstractGameContestant implements TeamIdentifier {
     private final int teamNumber;
     private final List<TeamPlayer> players;
 }

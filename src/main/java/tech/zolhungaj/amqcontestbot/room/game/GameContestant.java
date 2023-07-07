@@ -1,6 +1,6 @@
 package tech.zolhungaj.amqcontestbot.room.game;
 
-public sealed interface GameEntity permits AbstractGameEntity {
+public sealed interface GameContestant permits AbstractGameContestant {
     int getScore();
     int getGameModeScore();
     int getCorrectCount();

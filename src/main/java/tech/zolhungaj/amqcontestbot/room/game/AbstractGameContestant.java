@@ -3,7 +3,7 @@ package tech.zolhungaj.amqcontestbot.room.game;
 import lombok.Getter;
 
 @Getter
-public sealed class AbstractGameEntity implements GameEntity permits GamePlayer, GameTeam {
+public sealed class AbstractGameContestant implements GameContestant permits ContestantPlayer, ContestantTeam {
     private int score = 0;
     private int gameModeScore = 0;
     private int correctCount = 0;
