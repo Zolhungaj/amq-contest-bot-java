@@ -50,20 +50,20 @@ public class AdministratorManager {
             }else{
                 throw new IllegalArgumentException();
             }
-        }, ChatCommands.Grant.ADMIN, "addmoderator", "addmod");
+        }, ChatCommands.Grant.MODERATOR, "addmoderator", "addmod");
         chatCommands.register((sender, arguments) -> {
             if(arguments.size() == 1){
                 removeModerator(sender, arguments.get(0));
             }else{
                 throw new IllegalArgumentException();
             }
-        }, ChatCommands.Grant.ADMIN, "removemoderator", "removemod");
+        }, ChatCommands.Grant.MODERATOR, "removemoderator", "removemod");
     }
 
     private void addAdmin(String sender, String receiver){
         String senderTrueName = nameResolver.resolveOriginalName(sender);
         String receiverTrueName = nameResolver.resolveOriginalName(receiver);
-        moderationService.addAdmin(senderTrueName, receiverTrueName);
+        moderationService.addAdmin(receiverTrueName, senderTrueName);
     }
 
     private void removeAdmin(String remover, String admin){
@@ -75,18 +75,18 @@ public class AdministratorManager {
         }
         String removerTrueName = nameResolver.resolveOriginalName(remover);
         String adminTrueName = nameResolver.resolveOriginalName(admin);
-        moderationService.removeAdmin(removerTrueName, adminTrueName);
+        moderationService.removeAdmin(adminTrueName, removerTrueName);
     }
 
     private void addModerator(String sender, String receiver){
         String senderTrueName = nameResolver.resolveOriginalName(sender);
         String receiverTrueName = nameResolver.resolveOriginalName(receiver);
-        moderationService.addModerator(senderTrueName, receiverTrueName);
+        moderationService.addModerator(receiverTrueName, senderTrueName);
     }
 
     private void removeModerator(String remover, String moderator){
         String removerTrueName = nameResolver.resolveOriginalName(remover);
         String moderatorTrueName = nameResolver.resolveOriginalName(moderator);
-        moderationService.removeModerator(removerTrueName, moderatorTrueName);
+        moderationService.removeModerator(moderatorTrueName, removerTrueName);
     }
 }
