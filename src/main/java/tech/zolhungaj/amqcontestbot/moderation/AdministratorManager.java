@@ -1,14 +1,13 @@
 package tech.zolhungaj.amqcontestbot.moderation;
 
 import jakarta.annotation.PostConstruct;
+import jakarta.annotation.PreDestroy;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import tech.zolhungaj.amqapi.servercommands.globalstate.LoginComplete;
 import tech.zolhungaj.amqcontestbot.ApiManager;
 import tech.zolhungaj.amqcontestbot.chat.ChatCommands;
 import tech.zolhungaj.amqcontestbot.database.service.ModerationService;
-
-import java.util.concurrent.CompletableFuture;
 
 @Component
 @RequiredArgsConstructor
@@ -21,9 +20,15 @@ public class AdministratorManager {
     private void init(){
         registerAdmin();
         registerModerator();
-        api.on(LoginComplete.class, loginComplete -> CompletableFuture.runAsync(
-                () -> this.addAdmin(api.getSelfName(), api.getSelfName()))
+        api.on(LoginComplete.class, loginComplete -> nameResolver
+                .resolveOriginalNameAsync(loginComplete.selfName())
+                .thenAccept(moderationService::registerHost)
         );
+    }
+
+    @PreDestroy
+    private void unregisterHost(){
+        moderationService.unregisterHost(nameResolver.resolveOriginalName(api.getSelfName()));
     }
 
     private void registerAdmin(){

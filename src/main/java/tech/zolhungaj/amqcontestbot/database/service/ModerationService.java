@@ -6,43 +6,94 @@ import org.springframework.stereotype.Service;
 import tech.zolhungaj.amqcontestbot.database.enums.AdminType;
 import tech.zolhungaj.amqcontestbot.database.model.AdminEntity;
 import tech.zolhungaj.amqcontestbot.database.model.AdminLogEntity;
+import tech.zolhungaj.amqcontestbot.database.model.BanEntity;
 import tech.zolhungaj.amqcontestbot.database.model.PlayerEntity;
 import tech.zolhungaj.amqcontestbot.database.repository.AdminLogRepository;
 import tech.zolhungaj.amqcontestbot.database.repository.AdminRepository;
+import tech.zolhungaj.amqcontestbot.database.repository.BanRepository;
 
+import java.sql.Timestamp;
+import java.time.Duration;
+import java.time.Instant;
+import java.util.List;
 import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
 @Slf4j
 public class ModerationService {
+    private static final List<AdminType> MODERATOR_TIER = List.of(AdminType.MODERATOR, AdminType.ADMIN, AdminType.OWNER);
+    private static final List<AdminType> ADMIN_TIER = List.of(AdminType.HOST,AdminType.ADMIN, AdminType.OWNER);
+    private static final List<AdminType> OWNER_TIER = List.of(AdminType.OWNER);
     private final PlayerService playerService;
     private final AdminRepository adminRepository;
     private final AdminLogRepository logRepository;
-    public void ban(String originalName){
-        //TODO:implement
+    private final BanRepository banRepository;
+    public void ban(String originalName, String adminOriginalName, String reason, Duration duration){
+        if(!isAdmin(adminOriginalName)){
+            log.error("User {} tried to ban {} but is not an admin or owner", originalName, adminOriginalName);
+            return;
+        }
+        if(isModerator(originalName)){
+            throw new IllegalArgumentException("User " + originalName + " is a moderator or higher and cannot be banned");
+        }
+        PlayerEntity player = playerService.getOrCreatePlayer(originalName);
+        BanEntity ban = new BanEntity();
+        ban.setPlayerId(player.getId());
+        Timestamp now = now();
+        ban.setStart(now);
+        Timestamp expiry = Timestamp.from(now.toInstant().plus(duration));
+        ban.setExpiry(expiry);
+        ban.setReason(reason);
+        banRepository.save(ban);
+        addLog(adminOriginalName, "Banned " + originalName + " until " + expiry + " for " + reason);
     }
-    public void unban(String originalName){
-        //TODO:implement
+    public void unban(String originalName, String adminOriginalName){
+        if(!isAdmin(adminOriginalName)){
+            log.error("User {} tried to unban {} but is not an admin", adminOriginalName, originalName);
+            return;
+        }
+        if(!isBanned(originalName)){
+            log.info("User {} tried to unban {} but they are not banned", adminOriginalName, originalName);
+            throw new IllegalArgumentException("User " + originalName + " is not banned");
+        }
+        Optional<PlayerEntity> player = playerService.getPlayer(originalName);
+        List<BanEntity> activeBans = player
+                .map(playerEntity -> banRepository.findAllByPlayerIdIsAndExpiryIsAfter(playerEntity.getId(), now()))
+                .orElse(List.of());
+        activeBans.forEach(ban -> ban.setExpiry(now()));
+        banRepository.saveAll(activeBans);
+        addLog(adminOriginalName, "Unbanned " + originalName);
     }
     public boolean isBanned(String originalName){
-        return false; //TODO:implement
+        Optional<PlayerEntity> player = playerService.getPlayer(originalName);
+        return player
+                .map(playerEntity -> banRepository.findAllByPlayerIdIsAndExpiryIsAfter(playerEntity.getId(), now()))
+                .filter(list -> !list.isEmpty())
+                .isPresent();
+    }
+
+    private static Timestamp now(){
+        return Timestamp.from(Instant.now());
     }
 
     public boolean isModerator(String originalName){
         return getAdminEntity(originalName)
-                .filter(entity -> AdminType.MODERATOR.equals(entity.getAdminType()))
+                .map(AdminEntity::getAdminType)
+                .filter(MODERATOR_TIER::contains)
                 .isPresent();
     }
     public boolean isAdmin(String originalName){
         return getAdminEntity(originalName)
-                .filter(entity -> AdminType.ADMIN.equals(entity.getAdminType()))
+                .map(AdminEntity::getAdminType)
+                .filter(ADMIN_TIER::contains)
                 .isPresent();
     }
 
     public boolean isOwner(String originalName){
         return getAdminEntity(originalName)
-                .filter(entity -> AdminType.OWNER.equals(entity.getAdminType()))
+                .map(AdminEntity::getAdminType)
+                .filter(OWNER_TIER::contains)
                 .isPresent();
     }
 
@@ -52,14 +103,14 @@ public class ModerationService {
     }
 
     public void addAdmin(String newAdminOriginalName, String sourceOriginalName){
-        if(!isAdmin(sourceOriginalName) && !isOwner(sourceOriginalName)){
-            log.error("User {} tried to add admin {} but is not an admin or owner", sourceOriginalName, newAdminOriginalName);
+        if(!isAdmin(sourceOriginalName)){
+            log.error("User {} tried to add admin {} but is not an admin", sourceOriginalName, newAdminOriginalName);
             return;
         }
         Optional<PlayerEntity> playerEntityOptional = playerService.getPlayer(newAdminOriginalName);
         if(playerEntityOptional.isEmpty()){
             //prevent adding admins that don't exist, which would allow someone to later create an account with that name and become an admin
-            log.error("User {} tried to add admin {} but the user does not exist", sourceOriginalName, newAdminOriginalName);
+            log.info("User {} tried to add admin {} but the user does not exist", sourceOriginalName, newAdminOriginalName);
             throw new IllegalArgumentException("User " + newAdminOriginalName + " does not exist");
         }
         PlayerEntity playerEntity = playerEntityOptional.get();
@@ -82,13 +133,13 @@ public class ModerationService {
     }
 
     public void removeAdmin(String adminOriginalName, String removerOriginalName){
-        if(!isAdmin(removerOriginalName) && !isOwner(removerOriginalName)){
-            log.error("User {} tried to remove admin {} but is not an admin or owner", removerOriginalName, adminOriginalName);
+        if(!isAdmin(removerOriginalName)){
+            log.error("User {} tried to remove admin {} but is not an admin", removerOriginalName, adminOriginalName);
             return;
         }
         Optional<PlayerEntity> playerEntityOptional = playerService.getPlayer(adminOriginalName);
         if(playerEntityOptional.isEmpty()){
-            log.error("User {} tried to remove admin {} but the user does not exist", removerOriginalName, adminOriginalName);
+            log.info("User {} tried to remove admin {} but the user does not exist", removerOriginalName, adminOriginalName);
             throw new IllegalArgumentException("User " + adminOriginalName + " does not exist");
         }
         PlayerEntity playerEntity = playerEntityOptional.get();
@@ -107,14 +158,14 @@ public class ModerationService {
     }
 
     public void addModerator(String newModeratorOriginalName, String sourceOriginalName){
-        if(!isModerator(newModeratorOriginalName) && !isAdmin(sourceOriginalName) && !isOwner(sourceOriginalName)){
-            log.error("User {} tried to add moderator {} but is not an admin or owner", sourceOriginalName, newModeratorOriginalName);
+        if(!isModerator(newModeratorOriginalName)){
+            log.error("User {} tried to add moderator {} but is not a moderator", sourceOriginalName, newModeratorOriginalName);
             return;
         }
         Optional<PlayerEntity> playerEntityOptional = playerService.getPlayer(newModeratorOriginalName);
         if(playerEntityOptional.isEmpty()){
             //prevent adding moderators that don't exist, which would allow someone to later create an account with that name and become a moderator
-            log.error("User {} tried to add moderator {} but the user does not exist", sourceOriginalName, newModeratorOriginalName);
+            log.info("User {} tried to add moderator {} but the user does not exist", sourceOriginalName, newModeratorOriginalName);
             throw new IllegalArgumentException("User " + newModeratorOriginalName + " does not exist");
         }
         PlayerEntity playerEntity = playerEntityOptional.get();
@@ -137,13 +188,13 @@ public class ModerationService {
     }
 
     public void removeModerator(String moderatorOriginalName, String removerOriginalName){
-        if(!isModerator(moderatorOriginalName) && !isAdmin(removerOriginalName) && !isOwner(removerOriginalName)){
-            log.error("User {} tried to remove moderator {} but is not a moderator, admin or owner", removerOriginalName, moderatorOriginalName);
+        if(!isModerator(moderatorOriginalName)){
+            log.error("User {} tried to remove moderator {} but is not a moderator", removerOriginalName, moderatorOriginalName);
             return;
         }
         Optional<PlayerEntity> playerEntityOptional = playerService.getPlayer(moderatorOriginalName);
         if(playerEntityOptional.isEmpty()){
-            log.error("User {} tried to remove moderator {} but the user does not exist", removerOriginalName, moderatorOriginalName);
+            log.info("User {} tried to remove moderator {} but the user does not exist", removerOriginalName, moderatorOriginalName);
             throw new IllegalArgumentException("User " + moderatorOriginalName + " does not exist");
         }
         PlayerEntity playerEntity = playerEntityOptional.get();
@@ -161,11 +212,24 @@ public class ModerationService {
         }
     }
 
-    private void addLog(String originalName, String action){
+    public void addLog(String originalName, String action){
         PlayerEntity playerEntity = playerService.getPlayer(originalName).orElseThrow();
         AdminLogEntity logEntity = new AdminLogEntity();
         logEntity.setAdminId(playerEntity.getId());
         logEntity.setAction(action);
         logRepository.save(logEntity);
+    }
+
+    public void registerHost(String hostOriginalName){
+        PlayerEntity host = playerService.getOrCreatePlayer(hostOriginalName);
+        AdminEntity adminEntity = new AdminEntity();
+        adminEntity.setPlayerId(host.getId());
+        adminEntity.setAdminType(AdminType.HOST);
+        adminRepository.save(adminEntity);
+    }
+
+    public void unregisterHost(String hostOriginalName){
+        PlayerEntity host = playerService.getPlayer(hostOriginalName).orElseThrow();
+        adminRepository.deleteById(host.getId());
     }
 }

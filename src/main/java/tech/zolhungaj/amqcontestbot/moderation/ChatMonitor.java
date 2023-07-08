@@ -47,7 +47,7 @@ public class ChatMonitor {
     private void rateMessage(String sender, String message){
         Set<String> reasons = findBannedPhrases(message);
         if(!reasons.isEmpty()){
-            punishmentManager.kick(sender);
+            punishmentManager.kick(sender, api.getSelfName(), String.join(" ", reasons));
         }
         //reasons.forEach();
         //TODO: report for each violation in message
@@ -56,7 +56,7 @@ public class ChatMonitor {
     private void rateName(String nickname, String name){
         Set<String> reasons = findBannedPhrases(name);
         if(!reasons.isEmpty()){
-            punishmentManager.kick(nickname);
+            punishmentManager.kick(nickname, api.getSelfName(), "Name:" + String.join(" ", reasons));
             //TODO: report for "Offensive Name"
         }
     }
