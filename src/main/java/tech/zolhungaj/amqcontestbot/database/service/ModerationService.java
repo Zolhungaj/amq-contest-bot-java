@@ -3,7 +3,7 @@ package tech.zolhungaj.amqcontestbot.database.service;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
-import tech.zolhungaj.amqcontestbot.database.enums.AdminType;
+import tech.zolhungaj.amqcontestbot.database.enums.AdminTypeEnum;
 import tech.zolhungaj.amqcontestbot.database.model.AdminEntity;
 import tech.zolhungaj.amqcontestbot.database.model.AdminLogEntity;
 import tech.zolhungaj.amqcontestbot.database.model.BanEntity;
@@ -22,9 +22,9 @@ import java.util.Optional;
 @RequiredArgsConstructor
 @Slf4j
 public class ModerationService {
-    private static final List<AdminType> MODERATOR_TIER = List.of(AdminType.MODERATOR, AdminType.ADMIN, AdminType.OWNER);
-    private static final List<AdminType> ADMIN_TIER = List.of(AdminType.HOST,AdminType.ADMIN, AdminType.OWNER);
-    private static final List<AdminType> OWNER_TIER = List.of(AdminType.OWNER);
+    private static final List<AdminTypeEnum> MODERATOR_TIER = List.of(AdminTypeEnum.MODERATOR, AdminTypeEnum.ADMIN, AdminTypeEnum.OWNER);
+    private static final List<AdminTypeEnum> ADMIN_TIER = List.of(AdminTypeEnum.HOST, AdminTypeEnum.ADMIN, AdminTypeEnum.OWNER);
+    private static final List<AdminTypeEnum> OWNER_TIER = List.of(AdminTypeEnum.OWNER);
     private final PlayerService playerService;
     private final AdminRepository adminRepository;
     private final AdminLogRepository logRepository;
@@ -117,16 +117,16 @@ public class ModerationService {
         Optional<AdminEntity> adminEntityOptional = adminRepository.findById(playerEntity.getId());
         if(adminEntityOptional.isPresent()){
             AdminEntity adminEntity = adminEntityOptional.get();
-            if(AdminType.ADMIN.equals(adminEntity.getAdminType()) || AdminType.OWNER.equals(adminEntity.getAdminType())){
+            if(AdminTypeEnum.ADMIN.equals(adminEntity.getAdminType()) || AdminTypeEnum.OWNER.equals(adminEntity.getAdminType())){
                 return; //easier to just keep this idempotent
             }
-            adminEntity.setAdminType(AdminType.ADMIN);
+            adminEntity.setAdminType(AdminTypeEnum.ADMIN);
             adminRepository.save(adminEntity);
             addLog(sourceOriginalName, "promote to admin " + newAdminOriginalName);
         }else{
             AdminEntity newAdmin = new AdminEntity();
             newAdmin.setPlayerId(playerEntity.getId());
-            newAdmin.setAdminType(AdminType.ADMIN);
+            newAdmin.setAdminType(AdminTypeEnum.ADMIN);
             adminRepository.save(newAdmin);
             addLog(sourceOriginalName, "add admin " + newAdminOriginalName);
         }
@@ -146,7 +146,7 @@ public class ModerationService {
         Optional<AdminEntity> adminEntityOptional = adminRepository.findById(playerEntity.getId());
         if(adminEntityOptional.isPresent()){
             AdminEntity adminEntity = adminEntityOptional.get();
-            if(AdminType.ADMIN.equals(adminEntity.getAdminType())){
+            if(AdminTypeEnum.ADMIN.equals(adminEntity.getAdminType())){
                 adminRepository.delete(adminEntityOptional.get());
                 addLog(removerOriginalName, "remove admin " + adminOriginalName);
             }else{
@@ -172,16 +172,16 @@ public class ModerationService {
         Optional<AdminEntity> adminEntityOptional = adminRepository.findById(playerEntity.getId());
         if(adminEntityOptional.isPresent()){
             AdminEntity adminEntity = adminEntityOptional.get();
-            if(AdminType.MODERATOR.equals(adminEntity.getAdminType()) || AdminType.ADMIN.equals(adminEntity.getAdminType()) || AdminType.OWNER.equals(adminEntity.getAdminType())){
+            if(AdminTypeEnum.MODERATOR.equals(adminEntity.getAdminType()) || AdminTypeEnum.ADMIN.equals(adminEntity.getAdminType()) || AdminTypeEnum.OWNER.equals(adminEntity.getAdminType())){
                 return; //easier to just keep this idempotent
             }
-            adminEntity.setAdminType(AdminType.MODERATOR);
+            adminEntity.setAdminType(AdminTypeEnum.MODERATOR);
             adminRepository.save(adminEntity);
             addLog(sourceOriginalName, "promote to moderator " + newModeratorOriginalName);
         }else{
             AdminEntity newAdmin = new AdminEntity();
             newAdmin.setPlayerId(playerEntity.getId());
-            newAdmin.setAdminType(AdminType.MODERATOR);
+            newAdmin.setAdminType(AdminTypeEnum.MODERATOR);
             adminRepository.save(newAdmin);
             addLog(sourceOriginalName, "add moderator " + newModeratorOriginalName);
         }
@@ -201,7 +201,7 @@ public class ModerationService {
         Optional<AdminEntity> adminEntityOptional = adminRepository.findById(playerEntity.getId());
         if(adminEntityOptional.isPresent()){
             AdminEntity adminEntity = adminEntityOptional.get();
-            if(AdminType.MODERATOR.equals(adminEntity.getAdminType())){
+            if(AdminTypeEnum.MODERATOR.equals(adminEntity.getAdminType())){
                 adminRepository.delete(adminEntityOptional.get());
                 addLog(removerOriginalName, "remove moderator " + moderatorOriginalName);
             }else{
@@ -224,7 +224,7 @@ public class ModerationService {
         PlayerEntity host = playerService.getOrCreatePlayer(hostOriginalName);
         AdminEntity adminEntity = new AdminEntity();
         adminEntity.setPlayerId(host.getId());
-        adminEntity.setAdminType(AdminType.HOST);
+        adminEntity.setAdminType(AdminTypeEnum.HOST);
         adminRepository.save(adminEntity);
     }
 
