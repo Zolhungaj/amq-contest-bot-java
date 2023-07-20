@@ -2,23 +2,34 @@ package tech.zolhungaj.amqcontestbot.database.service;
 
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import tech.zolhungaj.amqapi.servercommands.objects.SongInfo;
+import tech.zolhungaj.amqcontestbot.database.enums.BroadcastFormatEnum;
+import tech.zolhungaj.amqcontestbot.database.enums.SeasonEnum;
 import tech.zolhungaj.amqcontestbot.database.enums.SongTypeEnum;
+import tech.zolhungaj.amqcontestbot.database.model.AnimeEntity;
 import tech.zolhungaj.amqcontestbot.database.model.SongEntity;
+import tech.zolhungaj.amqcontestbot.database.repository.AnimeRepository;
 import tech.zolhungaj.amqcontestbot.database.repository.SongRepository;
 
+import java.math.BigDecimal;
+import java.math.RoundingMode;
+import java.util.Locale;
 import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class SongService {
     private final SongRepository repository;
+    private final AnimeRepository animeRepository;
 
     @Transactional
-    public SongEntity getSongEntityFromSongInfo(@NonNull SongInfo songInfo){
-        int animeId = songInfo.annId();
+    public SongEntity updateAndGetSongEntityFromSongInfo(@NonNull SongInfo songInfo){
+        AnimeEntity animeEntity = updateAnimeWithSongInfo(songInfo);
+        log.info("AnimeEntity: {}", animeEntity);
         SongTypeEnum type = switch (songInfo.type()){
             case OPENING -> SongTypeEnum.OPENING;
             case ENDING -> SongTypeEnum.ENDING;
@@ -28,22 +39,70 @@ public class SongService {
         int number = songInfo.typeNumber();
         String title = songInfo.songName();
         String artist = songInfo.artist();
-        Optional<SongEntity> optional = repository.findByAnimeIdIsAndTypeIsAndNumberIsAndTitleIsAndArtistIs(
-                animeId,
+        Optional<SongEntity> optional = repository.findByAnimeIsAndTypeIsAndNumberIsAndTitleIsAndArtistIs(
+                animeEntity,
                 type,
                 number,
                 title,
                 artist);
+        final SongEntity songEntity;
         if(optional.isPresent()){
-            return optional.get();
+            songEntity = optional.get();
         }else{
-            SongEntity songEntity = new SongEntity();
-            songEntity.setAnimeId(animeId);
+            songEntity = new SongEntity();
+            songEntity.setAnime(animeEntity);
             songEntity.setType(type);
             songEntity.setNumber(number);
             songEntity.setTitle(title);
             songEntity.setArtist(artist);
-            return repository.save(songEntity);
         }
+        songEntity.setDifficulty(songInfo.animeDifficulty().orElse(null));
+        log.info("Saving song: {}", songEntity);
+        repository.save(songEntity);
+        return songEntity;
+    }
+
+    private AnimeEntity updateAnimeWithSongInfo(SongInfo songInfo){
+        int animeId = songInfo.annId();
+        Optional<AnimeEntity> optional = animeRepository.findById(animeId);
+        final AnimeEntity entity;
+        if(optional.isPresent()){
+            entity = optional.get();
+        }else{
+            entity = new AnimeEntity();
+            entity.setId(animeId);
+        }
+        songInfo.animeScore()
+                .map(doubleValue -> BigDecimal.valueOf(doubleValue).setScale(2, RoundingMode.HALF_DOWN))
+                .ifPresentOrElse(entity::setRating, () -> entity.setRating(null));
+        songInfo.mainAnimeNames().english().ifPresentOrElse(entity::setEnglishName, () -> entity.setEnglishName(null));
+        songInfo.mainAnimeNames().romaji().ifPresentOrElse(entity::setRomajiName, () -> entity.setRomajiName(null));
+        BroadcastFormatEnum broadcastFormat = switch (songInfo.animeType().toLowerCase(Locale.US)){
+            case "tv" -> BroadcastFormatEnum.TV;
+            case "ona" -> BroadcastFormatEnum.ONA;
+            case "ova" -> BroadcastFormatEnum.OVA;
+            case "movie" -> BroadcastFormatEnum.MOVIE;
+            case "special" -> BroadcastFormatEnum.SPECIAL;
+            default -> throw new IllegalArgumentException("Unexpected value: " + songInfo.animeType());
+        };
+        entity.setBroadcastFormat(broadcastFormat);
+        songInfo.siteIds().kitsuId().ifPresentOrElse(entity::setKitsuId, () -> entity.setKitsuId(null));
+        songInfo.siteIds().animeNewsNetworkId().ifPresentOrElse(entity::setAnimenewsnetworkId, () -> entity.setAnimenewsnetworkId(null));
+        songInfo.siteIds().myAnimeListId().ifPresentOrElse(entity::setMyanimelistId, () -> entity.setMyanimelistId(null));
+        songInfo.siteIds().aniListId().ifPresentOrElse(entity::setAnilistId, () -> entity.setAnilistId(null));
+        String vintage = songInfo.vintage();
+        //Vintage comes on the form "Season Year", e.g. "Winter 2019"
+        String[] split = vintage.split(" ");
+        SeasonEnum seasonEnum = switch (split[0].toLowerCase(Locale.US)){
+            case "winter" -> SeasonEnum.WINTER;
+            case "spring" -> SeasonEnum.SPRING;
+            case "summer" -> SeasonEnum.SUMMER;
+            case "fall" -> SeasonEnum.AUTUMN;
+            default -> throw new IllegalArgumentException("Unexpected value: " + split[1]);
+        };
+        int year = Integer.parseInt(split[1]);
+        entity.setYear(year);
+        entity.setSeason(seasonEnum);
+        return animeRepository.save(entity);
     }
 }

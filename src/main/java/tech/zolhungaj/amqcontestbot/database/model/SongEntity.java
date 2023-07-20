@@ -12,9 +12,9 @@ public class SongEntity {
     @Id
     @Column(name = "id")
     private int id;
-    @Basic
-    @Column(name = "anime_id")
-    private int animeId;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "anime_id")
+    private AnimeEntity anime;
     @Enumerated(EnumType.STRING)
     @Column(name = "type")
     private SongTypeEnum type;

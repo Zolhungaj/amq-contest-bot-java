@@ -81,7 +81,7 @@ public class GameManager {
 
     private void answerResults(AnswerResults answerResults){
         //songs are worth tracking regardless of whether a game is in progress
-        SongEntity songEntity = songService.getSongEntityFromSongInfo(answerResults.songInfo());
+        SongEntity songEntity = songService.updateAndGetSongEntityFromSongInfo(answerResults.songInfo());
         if(!inGame){
             return;
         }

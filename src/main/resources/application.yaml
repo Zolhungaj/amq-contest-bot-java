@@ -12,3 +12,9 @@ bot:
 spring:
   datasource:
     driver-class-name: org.postgresql.Driver
+    url: jdbc:postgresql://localhost:5432/amq_contest_bot
+    username: amq_contest_bot
+  jpa:
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
