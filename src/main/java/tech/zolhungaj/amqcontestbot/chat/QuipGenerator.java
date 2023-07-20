@@ -8,6 +8,7 @@ import tech.zolhungaj.amqapi.servercommands.gameroom.lobby.PlayerChangedToSpecta
 import tech.zolhungaj.amqapi.servercommands.objects.PlayerAvatar;
 import tech.zolhungaj.amqapi.servercommands.objects.SongInfo;
 import tech.zolhungaj.amqcontestbot.ApiManager;
+import tech.zolhungaj.amqcontestbot.database.model.PlayerAvatarEntity;
 import tech.zolhungaj.amqcontestbot.database.model.PlayerEntity;
 
 import java.util.List;
@@ -135,7 +136,8 @@ public class QuipGenerator {
         return true;
     }
 
-    private boolean commentOnAvatar(PlayerEntity playerEntity, String nickname, PlayerAvatar currentAvatar, boolean wasInRoom){
+    private boolean commentOnAvatar(PlayerEntity playerEntity, String nickname, PlayerAvatar currentAvatarRaw, boolean wasInRoom){
+        PlayerAvatarEntity currentAvatar = PlayerAvatarEntity.of(currentAvatarRaw);
         if(playerEntity.getAvatar().isEmpty() || playerEntity.getAvatar().get().equals(currentAvatar)){
             return false;
         }

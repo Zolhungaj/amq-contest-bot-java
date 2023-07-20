@@ -4,8 +4,6 @@ import jakarta.persistence.*;
 import lombok.Data;
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
-import tech.zolhungaj.amqapi.servercommands.objects.PlayerAvatar;
-
 import java.util.Optional;
 
 @Entity
@@ -23,13 +21,13 @@ public class PlayerEntity {
     private Integer level;
     @JdbcTypeCode(SqlTypes.JSON)
     @Column(name = "avatar")
-    private PlayerAvatar avatar;
+    private PlayerAvatarEntity avatar;
 
     public Optional<Integer> getLevel(){
         return Optional.ofNullable(level);
     }
 
-    public Optional<PlayerAvatar> getAvatar(){
+    public Optional<PlayerAvatarEntity> getAvatar(){
         return Optional.ofNullable(avatar);
     }
 }
