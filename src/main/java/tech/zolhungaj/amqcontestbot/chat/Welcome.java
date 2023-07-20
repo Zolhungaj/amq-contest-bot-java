@@ -8,6 +8,7 @@ import tech.zolhungaj.amqapi.servercommands.gameroom.SpectatorJoined;
 import tech.zolhungaj.amqapi.servercommands.gameroom.lobby.SpectatorChangedToPlayer;
 import tech.zolhungaj.amqapi.servercommands.objects.PlayerAvatar;
 import tech.zolhungaj.amqcontestbot.ApiManager;
+import tech.zolhungaj.amqcontestbot.database.model.PlayerAvatarEntity;
 import tech.zolhungaj.amqcontestbot.database.model.PlayerEntity;
 import tech.zolhungaj.amqcontestbot.moderation.NameResolver;
 import tech.zolhungaj.amqcontestbot.database.service.PlayerService;
@@ -55,7 +56,7 @@ public class Welcome {
             quipGenerator.commentOnPlayer(playerEntity, nickname, currentLevel, avatar, false);
         }
         playerEntity.setLevel(currentLevel);
-        playerEntity.setAvatar(avatar);
+        playerEntity.setAvatar(PlayerAvatarEntity.of(avatar));
         playerService.save(playerEntity);
     }
 
@@ -71,7 +72,7 @@ public class Welcome {
             PlayerEntity playerEntity = player.get();
             quipGenerator.commentOnPlayer(playerEntity, nickname, currentLevel, avatar, true);
             playerEntity.setLevel(currentLevel);
-            playerEntity.setAvatar(avatar);
+            playerEntity.setAvatar(PlayerAvatarEntity.of(avatar));
             playerService.save(playerEntity);
         }
     }
