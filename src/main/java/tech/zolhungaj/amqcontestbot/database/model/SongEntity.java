@@ -15,7 +15,7 @@ public class SongEntity {
     @Basic
     @Column(name = "anime_id")
     private int animeId;
-    @Basic
+    @Enumerated(EnumType.STRING)
     @Column(name = "type")
     private SongTypeEnum type;
     @Basic
