@@ -8,7 +8,6 @@ import tech.zolhungaj.amqcontestbot.database.enums.AdminTypeEnum;
 @Table(name = "admin", schema = "public", catalog = "amq_contest_bot")
 @Data
 public class AdminEntity {
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Id
     @Column(name = "player_id")
     private int playerId;
