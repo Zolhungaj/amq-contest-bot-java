@@ -27,7 +27,7 @@ public class PlayerEntity {
 
     @OneToOne(fetch = FetchType.LAZY, mappedBy = "player_id")
     @JoinColumn(name = "id")
-    private ContestantEntity contestant;
+    private PlayerContestantEntity contestant;
 
     @ManyToMany(fetch = FetchType.LAZY)
     @JoinTable(

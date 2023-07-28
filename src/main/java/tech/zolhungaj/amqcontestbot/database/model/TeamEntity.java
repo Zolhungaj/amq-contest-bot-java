@@ -19,7 +19,7 @@ public class TeamEntity {
 
     @OneToOne(fetch = FetchType.LAZY, mappedBy = "team_id")
     @JoinColumn(name = "id")
-    private ContestantEntity contestant;
+    private TeamContestantEntity contestant;
 
     @ManyToMany(fetch = FetchType.LAZY)
     @JoinTable(
