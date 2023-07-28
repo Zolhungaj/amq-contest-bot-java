@@ -30,8 +30,7 @@ public class UtilityCommands {
 
     private void registerPing(){
         chatCommands.register((sender, arguments) -> {
-            long ping = api.getPing();
-            String sentMessage = chatController.send("ping.base", ping).get(0);
+            String sentMessage = chatController.send("ping.base").get(0);
             Instant sendInstant = Instant.now();
             long sendInstantAsMillis = sendInstant.toEpochMilli();
             Predicate<GameChatMessage> printWhenMatch = gameChatMessage -> {

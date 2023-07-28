@@ -33,7 +33,7 @@ public class DirectMessageController {
     //TODO: add a way to change language and sublanguage, and save it to the database
     @PostConstruct
     private void init(){
-        api.on(command -> {
+        api.onAllCommands(command -> {
             if(false){//TODO: command instanceof NewChatAlert
                 String alert = "";
                 String name = "";
@@ -42,9 +42,7 @@ public class DirectMessageController {
                     chatController.send("dm.error.must-be-friends", name);
                     pendingMessages.removeIf(dm -> dm.recipient.equals(name));
                 }
-                return true;
             }
-            return false;
         });
     }
 

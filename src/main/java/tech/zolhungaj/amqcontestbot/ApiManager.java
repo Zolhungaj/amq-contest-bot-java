@@ -1,9 +1,9 @@
 package tech.zolhungaj.amqcontestbot;
 
+import lombok.Getter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import tech.zolhungaj.amqapi.AmqApi;
-import tech.zolhungaj.amqapi.EventHandler;
 import tech.zolhungaj.amqapi.clientcommands.ClientCommand;
 import tech.zolhungaj.amqapi.servercommands.Command;
 import tech.zolhungaj.amqapi.servercommands.globalstate.LoginComplete;
@@ -14,18 +14,15 @@ import java.util.function.Predicate;
 @Component
 public class ApiManager {
     private final AmqApi api;
+    @Getter
     private String selfName;
     public ApiManager(@Autowired ApiConfiguration configuration){
         this.api = new AmqApi(configuration.getUsername(), configuration.getPassword(), configuration.isForceConnect());
         this.on(LoginComplete.class, loginComplete -> this.selfName = loginComplete.selfName());
     }
 
-    /**
-     * @deprecated
-     */
-    @Deprecated(forRemoval = true)
-    public void on(EventHandler handler){
-        this.api.on(handler);
+    public void onAllCommands(Consumer<Command> consumer){
+        this.api.onAllCommands(consumer);
     }
 
     public <T extends Command> void on(Class<T> commandClass, Consumer<T> consumer){
@@ -38,14 +35,6 @@ public class ApiManager {
 
     public void sendCommand(ClientCommand command){
         this.api.sendCommand(command);
-    }
-
-    public long getPing(){
-        return this.api.getCurrentPing();
-    }
-
-    public String getSelfName(){
-        return this.selfName;
     }
 
     private Thread thread;

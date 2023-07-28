@@ -23,10 +23,7 @@ public class AmqContestBotApplication implements ApplicationRunner {
 
 	@Override
 	public void run(ApplicationArguments args) {
-		api.on(command -> {
-			log.info("Main received command {}", command);
-			return true;
-		});
+		api.onAllCommands(command -> log.info("Main received command {}", command));
 		api.on(OnlinePlayerCountChange.class, o -> log.info("Players online changed: {}", o.count()));
 		api.start();
 	}
