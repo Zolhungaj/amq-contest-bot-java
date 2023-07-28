@@ -2,6 +2,8 @@ package tech.zolhungaj.amqcontestbot.database.model;
 
 import jakarta.persistence.*;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.ToString;
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
 
@@ -23,10 +25,13 @@ public class PlayerEntity {
     private Integer level;
     @JdbcTypeCode(SqlTypes.JSON)
     @Column(name = "avatar")
+    @ToString.Exclude
     private PlayerAvatarEntity avatar;
 
     @OneToOne(fetch = FetchType.LAZY, mappedBy = "player_id")
-    @JoinColumn(name = "id")
+    @JoinColumn(name = "id", insertable = false, updatable = false)
+    @ToString.Exclude
+    @EqualsAndHashCode.Exclude
     private PlayerContestantEntity contestant;
 
     @ManyToMany(fetch = FetchType.LAZY)
@@ -35,6 +40,8 @@ public class PlayerEntity {
             joinColumns = @JoinColumn(name = "player_id"),
             inverseJoinColumns = @JoinColumn(name = "team_id")
     )
+    @ToString.Exclude
+    @EqualsAndHashCode.Exclude
     private Set<TeamEntity> teams;
 
     public Optional<Integer> getLevel(){

@@ -2,6 +2,8 @@ package tech.zolhungaj.amqcontestbot.database.model;
 
 import jakarta.persistence.*;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.ToString;
 
 import java.util.Set;
 
@@ -18,7 +20,9 @@ public class TeamEntity {
     private String name;
 
     @OneToOne(fetch = FetchType.LAZY, mappedBy = "team_id")
-    @JoinColumn(name = "id")
+    @JoinColumn(name = "id", insertable = false, updatable = false)
+    @ToString.Exclude
+    @EqualsAndHashCode.Exclude
     private TeamContestantEntity contestant;
 
     @ManyToMany(fetch = FetchType.LAZY)
