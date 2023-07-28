@@ -3,7 +3,7 @@ package tech.zolhungaj.amqcontestbot.database.model;
 import jakarta.persistence.*;
 import lombok.Data;
 
-import java.util.List;
+import java.util.Set;
 
 @Data
 @Entity
@@ -27,5 +27,5 @@ public class TeamEntity {
             joinColumns = @JoinColumn(name = "team_id"),
             inverseJoinColumns = @JoinColumn(name = "player_id")
     )
-    private List<PlayerEntity> players;
+    private Set<PlayerEntity> players;
 }

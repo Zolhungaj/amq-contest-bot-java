@@ -5,8 +5,8 @@ import lombok.Data;
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
 
-import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 @Entity
 @Table(name = "player", schema = "public", catalog = "amq_contest_bot")
@@ -35,7 +35,7 @@ public class PlayerEntity {
             joinColumns = @JoinColumn(name = "player_id"),
             inverseJoinColumns = @JoinColumn(name = "team_id")
     )
-    private List<TeamEntity> teams;
+    private Set<TeamEntity> teams;
 
     public Optional<Integer> getLevel(){
         return Optional.ofNullable(level);
