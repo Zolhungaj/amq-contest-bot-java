@@ -19,7 +19,7 @@ public class TeamEntity {
     @Column(name = "name")
     private String name;
 
-    @OneToOne(fetch = FetchType.LAZY, mappedBy = "team_id")
+    @OneToOne(fetch = FetchType.LAZY, mappedBy = "team")
     @JoinColumn(name = "id", insertable = false, updatable = false)
     @ToString.Exclude
     @EqualsAndHashCode.Exclude

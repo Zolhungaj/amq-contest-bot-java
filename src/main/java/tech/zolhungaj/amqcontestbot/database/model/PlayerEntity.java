@@ -28,7 +28,7 @@ public class PlayerEntity {
     @ToString.Exclude
     private PlayerAvatarEntity avatar;
 
-    @OneToOne(fetch = FetchType.LAZY, mappedBy = "player_id")
+    @OneToOne(fetch = FetchType.LAZY, mappedBy = "player")
     @JoinColumn(name = "id", insertable = false, updatable = false)
     @ToString.Exclude
     @EqualsAndHashCode.Exclude
