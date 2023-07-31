@@ -43,7 +43,7 @@ public class MasterOfTheSeasonsGameMode extends AbstractSpeedRunGameMode {
                 .build();
     }
 
-    private Vintage randomVintage(){
+    protected Vintage randomVintage(){
         List<Vintage> seasons = allValidSeasons();
         int index = randomGenerator.nextInt(seasons.size());
         return seasons.get(index);
