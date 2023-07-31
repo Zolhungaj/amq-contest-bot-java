@@ -1,6 +1,7 @@
 package tech.zolhungaj.amqcontestbot.room.lobby;
 
 
+import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.EnableScheduling;
@@ -10,6 +11,7 @@ import tech.zolhungaj.amqapi.clientcommands.lobby.StartGame;
 import tech.zolhungaj.amqapi.servercommands.gameroom.game.QuizOver;
 import tech.zolhungaj.amqapi.servercommands.gameroom.game.QuizReady;
 import tech.zolhungaj.amqcontestbot.ApiManager;
+import tech.zolhungaj.amqcontestbot.chat.ChatCommands;
 import tech.zolhungaj.amqcontestbot.chat.ChatController;
 
 import java.util.Set;
@@ -24,10 +26,24 @@ import java.util.stream.Collectors;
 public class LobbyManager {
     private static final int WAIT_TIME = 30;
     private static final int SECONDARY_WAIT_TIME = 10;
+    private static final int MAX_WAIT_TIME = WAIT_TIME + SECONDARY_WAIT_TIME;
 
     private final LobbyStateManager stateManager;
     private final ApiManager api;
     private final ChatController chatController;
+    private final ChatCommands chatCommands;
+
+    @PostConstruct
+    private void init(){
+        chatCommands.register((sender, unused) -> {
+            counter = WAIT_TIME;
+            startIfPossible();
+        }, ChatCommands.Grant.ADMIN, "start");
+        chatCommands.register((sender, unused) -> {
+            counter = MAX_WAIT_TIME;
+            startIfPossible();
+        }, ChatCommands.Grant.ADMIN, "startnow");
+    }
     private boolean inStartPhase = false;
     private int counter = 0;
     private int changeGameModeCounter = 0;
@@ -64,7 +80,7 @@ public class LobbyManager {
             this.start();
             return true;
         }
-        if(counter >= WAIT_TIME + SECONDARY_WAIT_TIME){
+        if(counter >= MAX_WAIT_TIME){
             this.start();
             return true;
         }
@@ -88,7 +104,7 @@ public class LobbyManager {
                     .collect(Collectors.joining(" "));
             chatController.send("lobby.get-ready", message, SECONDARY_WAIT_TIME);
         }else{
-            int diff = WAIT_TIME + SECONDARY_WAIT_TIME - counter;
+            int diff = MAX_WAIT_TIME - counter;
             chatController.send("lobby.countdown.secondary", diff);
         }
     }
