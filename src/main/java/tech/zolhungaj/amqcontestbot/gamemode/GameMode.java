@@ -17,4 +17,9 @@ public sealed interface GameMode permits AbstractGameMode{
             long correctTime,
             long time
     ){}
+
+    default boolean sameGameMode(GameMode gameMode){
+        if(gameMode == null) return false;
+        return this.getClass().equals(gameMode.getClass());
+    }
 }

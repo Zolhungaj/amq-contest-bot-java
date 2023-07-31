@@ -13,6 +13,10 @@ import tech.zolhungaj.amqapi.servercommands.gameroom.game.QuizReady;
 import tech.zolhungaj.amqcontestbot.ApiManager;
 import tech.zolhungaj.amqcontestbot.chat.ChatCommands;
 import tech.zolhungaj.amqcontestbot.chat.ChatController;
+import tech.zolhungaj.amqcontestbot.chat.VoteManager;
+import tech.zolhungaj.amqcontestbot.gamemode.GameMode;
+import tech.zolhungaj.amqcontestbot.gamemode.MasterOfSeasonsGameMode;
+import tech.zolhungaj.amqcontestbot.gamemode.MasterOfTheSeasonGameMode;
 
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
@@ -32,6 +36,7 @@ public class LobbyManager {
     private final ApiManager api;
     private final ChatController chatController;
     private final ChatCommands chatCommands;
+    private final VoteManager voteManager;
 
     @PostConstruct
     private void init(){
@@ -43,6 +48,30 @@ public class LobbyManager {
             counter = MAX_WAIT_TIME;
             startIfPossible();
         }, ChatCommands.Grant.ADMIN, "startnow");
+        chatCommands.register((sender, arguments) -> {
+            if(!stateManager.isInLobby()){
+                chatController.send("gamemode.vote.not-in-lobby");
+                return;
+            }
+            String gameModeName = String.join(" ", arguments);
+            GameMode gameMode = switch (gameModeName.toLowerCase()){
+                case "master of seasons", "mos" -> new MasterOfSeasonsGameMode();
+                case "master of the season", "mots" -> new MasterOfTheSeasonGameMode();
+                default -> null;
+            };
+            if(gameMode == null){
+                chatController.send("gamemode.vote.invalid", gameModeName);
+                return;
+            }
+            if(gameMode.sameGameMode(stateManager.getGameMode())){
+                chatController.send("gamemode.vote.already-current-gamemode", gameModeName);
+                return;
+            }
+            voteManager.startVote(stateManager.getPlayerNames(), () -> {
+                stateManager.setGameMode(gameMode);
+                chatController.send("gamemode.vote.success", gameModeName);
+            }, sender);
+        }, "gamemode");
     }
     private boolean inStartPhase = false;
     private int counter = 0;

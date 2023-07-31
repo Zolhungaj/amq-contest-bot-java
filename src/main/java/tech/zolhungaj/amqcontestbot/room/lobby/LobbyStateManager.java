@@ -3,6 +3,7 @@ package tech.zolhungaj.amqcontestbot.room.lobby;
 import jakarta.annotation.PostConstruct;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
+import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.stereotype.Component;
@@ -39,7 +40,9 @@ public class LobbyStateManager {
     private static final List<String> FULL_FILE_SERVERS = List.of("catbox");
     private final ApiManager api;
     private final ChatController chatController;
-    private final GameMode gameMode = new MasterOfSeasonsGameMode();
+    @Setter
+    @Getter
+    private GameMode gameMode = new MasterOfSeasonsGameMode();
     @Getter
     private boolean inLobby = false;
     private final Map<Integer, LobbyPlayer> players = new ConcurrentHashMap<>();
@@ -70,6 +73,13 @@ public class LobbyStateManager {
         //queue related events
         api.on(SpectatorLeft.class, this::removeSpectator); //a leaving spectator leaves the queue
         //TODO: queue join and leave, in someone decides to camp with ready off
+    }
+
+    public List<String> getPlayerNames(){
+        return players.values().stream()
+                .filter(LobbyPlayer::inLobby)
+                .map(LobbyPlayer::playerName)
+                .toList();
     }
 
     private void loginComplete(LoginComplete loginComplete){
