@@ -24,7 +24,7 @@ import tech.zolhungaj.amqapi.sharedobjects.gamesettings.GameSettings;
 import tech.zolhungaj.amqcontestbot.ApiManager;
 import tech.zolhungaj.amqcontestbot.chat.ChatController;
 import tech.zolhungaj.amqcontestbot.gamemode.GameMode;
-import tech.zolhungaj.amqcontestbot.gamemode.MasterOfTheSeasonsGameMode;
+import tech.zolhungaj.amqcontestbot.gamemode.MasterOfSeasonsGameMode;
 
 import java.util.*;
 import java.util.concurrent.*;
@@ -39,7 +39,7 @@ public class LobbyStateManager {
     private static final List<String> FULL_FILE_SERVERS = List.of("catbox");
     private final ApiManager api;
     private final ChatController chatController;
-    private final GameMode gameMode = new MasterOfTheSeasonsGameMode();
+    private final GameMode gameMode = new MasterOfSeasonsGameMode();
     @Getter
     private boolean inLobby = false;
     private final Map<Integer, LobbyPlayer> players = new ConcurrentHashMap<>();

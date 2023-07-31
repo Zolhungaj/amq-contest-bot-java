@@ -8,7 +8,7 @@ import java.util.List;
 import java.util.Random;
 import java.util.random.RandomGenerator;
 
-public class MasterOfTheSeasonsGameMode extends AbstractSpeedRunGameMode {
+public class MasterOfSeasonsGameMode extends AbstractSpeedRunGameMode {
     private static final int SONG_COUNT = 20;
     private static final GameSettings BASE_GAME_SETTINGS = GameSettings.DEFAULT
             .toBuilder()
@@ -36,7 +36,7 @@ public class MasterOfTheSeasonsGameMode extends AbstractSpeedRunGameMode {
         }else{
             season = "憂";
         }
-        String roomName = "MasterOfTheSeason%02d%s".formatted(year, season);
+        String roomName = roomPrefix() + "%02d%s".formatted(year, season);
         return BASE_GAME_SETTINGS.toBuilder()
                 .vintage(vintage)
                 .roomName(roomName)
@@ -47,6 +47,10 @@ public class MasterOfTheSeasonsGameMode extends AbstractSpeedRunGameMode {
         List<Vintage> seasons = allValidSeasons();
         int index = randomGenerator.nextInt(seasons.size());
         return seasons.get(index);
+    }
+
+    protected String roomPrefix(){
+        return "Master of Seasons";
     }
     /**
      * Returns all valid seasons:
