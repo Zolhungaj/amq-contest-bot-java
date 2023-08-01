@@ -3,17 +3,9 @@ package tech.zolhungaj.amqcontestbot.gamemode;
 import tech.zolhungaj.amqcontestbot.database.enums.ScoringTypeEnum;
 
 import java.util.Collection;
+import java.util.Comparator;
 
 public abstract class AbstractScoreGameMode extends AbstractGameMode {
-    @Override
-    protected void reset() {
-
-    }
-
-    @Override
-    protected void init(Collection<String> players) {
-
-    }
 
     @Override
     public void score(Collection<Object> scoreObjects) {
@@ -21,12 +13,13 @@ public abstract class AbstractScoreGameMode extends AbstractGameMode {
     }
 
     @Override
-    public Collection<PlayerScore> finish() {
-        return null;
+    public final ScoringTypeEnum scoringType() {
+        return ScoringTypeEnum.SCORE;
     }
 
     @Override
-    public final ScoringTypeEnum scoringType() {
-        return ScoringTypeEnum.SCORE;
+    protected final Comparator<PlayerScore> comparator() {
+        return Comparator
+                .comparingInt(PlayerScore::score);
     }
 }

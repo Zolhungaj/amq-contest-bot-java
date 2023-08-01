@@ -1,5 +1,6 @@
 package tech.zolhungaj.amqcontestbot.gamemode;
 
+import lombok.With;
 import tech.zolhungaj.amqapi.sharedobjects.gamesettings.GameSettings;
 import tech.zolhungaj.amqcontestbot.database.enums.RulesetEnum;
 import tech.zolhungaj.amqcontestbot.database.enums.ScoringTypeEnum;
@@ -11,6 +12,7 @@ public sealed interface GameMode permits AbstractGameMode{
     void start(Collection<String> players);
     void score(Collection<Object> scoreObjects);
     Collection<PlayerScore> finish();
+    @With //replace with GameContestant?
     record PlayerScore(
             String playerName,
             int position,
