@@ -8,5 +8,5 @@ public enum RulesetEnum {
     ALL,
     ALL_HARD,
     MASTER_OF_THE_SEASON,
-    MASTER_OF_THE_SEASONS
+    MASTER_OF_SEASONS
 }
