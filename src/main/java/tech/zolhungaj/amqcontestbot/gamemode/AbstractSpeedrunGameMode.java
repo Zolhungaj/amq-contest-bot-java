@@ -5,7 +5,7 @@ import lombok.NonNull;
 
 import java.util.*;
 
-public abstract class AbstractSpeedRunGameMode extends AbstractGameMode{
+public abstract class AbstractSpeedrunGameMode extends AbstractGameMode{
 
     private final Map<String, Player> playerMap = new HashMap<>();
     @Override

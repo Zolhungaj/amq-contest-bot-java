@@ -1,6 +1,7 @@
 package tech.zolhungaj.amqcontestbot.gamemode;
 
 import tech.zolhungaj.amqapi.sharedobjects.gamesettings.*;
+import tech.zolhungaj.amqcontestbot.database.enums.RulesetEnum;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
@@ -8,7 +9,7 @@ import java.util.List;
 import java.util.Random;
 import java.util.random.RandomGenerator;
 
-public class MasterOfSeasonsGameMode extends AbstractSpeedRunGameMode {
+public class MasterOfSeasonsGameMode extends AbstractScoreGameMode {
     private static final int SONG_COUNT = 20;
     private static final GameSettings BASE_GAME_SETTINGS = GameSettings.DEFAULT
             .toBuilder()
@@ -90,5 +91,10 @@ public class MasterOfSeasonsGameMode extends AbstractSpeedRunGameMode {
         }
 
         return vintages;
+    }
+
+    @Override
+    public RulesetEnum ruleset() {
+        return RulesetEnum.MASTER_OF_SEASONS;
     }
 }
