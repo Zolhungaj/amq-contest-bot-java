@@ -81,7 +81,12 @@ public class LobbyManager {
                 return;
             }
             voteManager.startVote(stateManager.getPlayerNames(), () -> {
-                stateManager.setGameMode(gameMode);
+                if(stateManager.isInLobby() && !inStartPhase){
+                    stateManager.setGameMode(gameMode);
+                    counter = 0;
+                    changeGameModeCounter = 0;
+                    stateManager.cycleGameMode();
+                }
                 chatController.send("gamemode.vote.success", ruleset, scoringMode);
             }, sender);
         }, "gamemode");
