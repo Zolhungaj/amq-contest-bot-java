@@ -49,7 +49,23 @@ public class GameModeFactory {
             case ALL_HARD -> BASE_RANDOM_SETTINGS.withSongTypeSelection(SongTypeSelection.of(SONG_COUNT, SongTypeSelection.SongType.ALL)).withSongDifficulty(SongDifficulty.of(0, 40));
             case MASTER_OF_THE_SEASON, MASTER_OF_SEASONS -> throw new IllegalStateException(); // Already handled above, for the compiler
         };
-        GameSettings settings = baseSettings.withTeamSize(teamSize);
+        String roomName = switch (ruleset){
+            case OPENINGS -> "Athena";
+            case ENDINGS -> "EDs";
+            case INSERTS -> "INs";
+            case OPENINGS_ENDINGS -> "Classic";
+            case ALL -> "All";
+            case ALL_HARD -> "Zeus";
+            case MASTER_OF_THE_SEASON, MASTER_OF_SEASONS -> throw new IllegalStateException(); // Already handled above, for the compiler
+        }
+        + switch (scoringType){
+            case COUNT -> "";
+            case SPEEDRUN -> " Speedrun";
+            case SPEED -> " QuickDraw";
+            case LIVES -> " Lives";
+        };
+
+        GameSettings settings = baseSettings.withTeamSize(teamSize).withRoomName(roomName);
         return switch (scoringType){
             case COUNT -> new AbstractCountGameMode() {
                 @Override
