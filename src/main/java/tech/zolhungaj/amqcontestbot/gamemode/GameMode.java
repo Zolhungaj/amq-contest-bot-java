@@ -1,27 +1,19 @@
 package tech.zolhungaj.amqcontestbot.gamemode;
 
 import lombok.With;
+import tech.zolhungaj.amqapi.servercommands.objects.PlayerAnswerResult;
 import tech.zolhungaj.amqapi.sharedobjects.gamesettings.GameSettings;
 import tech.zolhungaj.amqcontestbot.database.enums.RulesetEnum;
 import tech.zolhungaj.amqcontestbot.database.enums.ScoringTypeEnum;
+import tech.zolhungaj.amqcontestbot.room.game.GameContestant;
 
+import java.time.Duration;
 import java.util.Collection;
 
 public sealed interface GameMode permits AbstractGameMode{
     GameSettings getNextSettings();
-    void start(Collection<String> players);
-    void score(Collection<Object> scoreObjects);
-    Collection<PlayerScore> finish();
-    @With //replace with GameContestant?
-    record PlayerScore(
-            String playerName,
-            int position,
-            int score,
-            int correctCount,
-            long correctTime,
-            long time
-    ){}
-
+    void score(GameContestant contestant, PlayerAnswerResult answerResult, Duration playerAnswerTime);
+    void rank(Collection<GameContestant> contestants);
     RulesetEnum ruleset();
     ScoringTypeEnum scoringType();
 

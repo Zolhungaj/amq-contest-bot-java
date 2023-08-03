@@ -1,44 +1,48 @@
 package tech.zolhungaj.amqcontestbot.gamemode;
 
+import tech.zolhungaj.amqapi.servercommands.objects.PlayerAnswerResult;
+import tech.zolhungaj.amqcontestbot.room.game.GameContestant;
+
+import java.time.Duration;
 import java.util.*;
 
 public abstract non-sealed class AbstractGameMode implements GameMode{
-    public final void start(Collection<String> players){
-        this.reset();
-        this.init(players);
-    }
 
-    private final Map<String, PlayerScore> playerMap = new HashMap<>();
-
-    private void reset(){
-        playerMap.clear();
-    }
-
-    private void init(Collection<String> players){
-        players.forEach(player -> playerMap.put(player, new PlayerScore(player, -1, 0, 0, 0, 0)));
-    }
-
-    protected abstract Comparator<PlayerScore> comparator();
+    protected abstract Comparator<GameContestant> comparator();
 
     @Override
-    public final Collection<GameMode.PlayerScore> finish() {
-        List<PlayerScore> players =  playerMap.values()
+    public void score(GameContestant contestant, PlayerAnswerResult answerResult, Duration playerAnswerTime) {
+        contestant.setScore(answerResult.score());
+        if(answerResult.correct()){
+            contestant.incrementCorrectCount();
+        }else{
+            contestant.incrementWrongCount();
+        }
+
+        if(playerAnswerTime != null){
+            long timeInMilliseconds = playerAnswerTime.toMillis();
+            contestant.addTime(timeInMilliseconds);
+            if(answerResult.correct()) {
+                contestant.addCorrectTime(timeInMilliseconds);
+            }
+        }
+    }
+
+    @Override
+    public final void rank(Collection<GameContestant> contestants) {
+        List<GameContestant> contestantsSorted = contestants
                 .stream()
                 .sorted(Collections.reverseOrder(this.comparator()))
                 .toList();
         int position = 0;
-        List<PlayerScore> scores = new ArrayList<>();
-        PlayerScore previous = null;
-        for(PlayerScore player : players){
-            if(previous == null || this.comparator().compare(previous, player) != 0){
+        GameContestant previous = null;
+        for(GameContestant contestant : contestantsSorted){
+            if(previous == null || this.comparator().compare(previous, contestant) != 0){
                 //since the list is sorted, all differences means a lower rank
                 position++;
             }
-            previous = player;
-            scores.add(
-                    player.withPosition(position)
-            );
+            previous = contestant;
+            contestant.setPosition(position);
         }
-        return scores;
     }
 }

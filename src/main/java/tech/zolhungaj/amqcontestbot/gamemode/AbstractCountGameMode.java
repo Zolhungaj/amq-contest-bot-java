@@ -5,9 +5,9 @@ import tech.zolhungaj.amqcontestbot.database.enums.ScoringTypeEnum;
 import tech.zolhungaj.amqcontestbot.room.game.GameContestant;
 
 import java.time.Duration;
-import java.util.*;
+import java.util.Comparator;
 
-public abstract class AbstractSpeedrunGameMode extends AbstractGameMode{
+public abstract class AbstractCountGameMode extends AbstractGameMode {
 
     @Override
     public final void score(GameContestant contestant, PlayerAnswerResult answerResult, Duration playerAnswerTime) {
@@ -18,14 +18,13 @@ public abstract class AbstractSpeedrunGameMode extends AbstractGameMode{
     }
 
     @Override
-    protected final Comparator<GameContestant> comparator() {
-        return Comparator
-                .comparingInt(GameContestant::getScore)
-                .thenComparingLong(GameContestant::getCorrectTime);
+    public final ScoringTypeEnum scoringType() {
+        return ScoringTypeEnum.COUNT;
     }
 
     @Override
-    public final ScoringTypeEnum scoringType() {
-        return ScoringTypeEnum.SPEEDRUN;
+    protected final Comparator<GameContestant> comparator() {
+        return Comparator
+                .comparingInt(GameContestant::getGameModeScore);
     }
 }

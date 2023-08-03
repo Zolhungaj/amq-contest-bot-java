@@ -4,15 +4,13 @@ import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
-import tech.zolhungaj.amqapi.servercommands.gameroom.game.AnswerResults;
-import tech.zolhungaj.amqapi.servercommands.gameroom.game.GameStarting;
-import tech.zolhungaj.amqapi.servercommands.gameroom.game.PlayNextSong;
-import tech.zolhungaj.amqapi.servercommands.gameroom.game.PlayersAnswered;
+import tech.zolhungaj.amqapi.servercommands.gameroom.game.*;
 import tech.zolhungaj.amqapi.servercommands.globalstate.LoginComplete;
 import tech.zolhungaj.amqapi.servercommands.objects.PlayerAnswerResult;
 import tech.zolhungaj.amqcontestbot.ApiManager;
 import tech.zolhungaj.amqcontestbot.database.model.SongEntity;
 import tech.zolhungaj.amqcontestbot.database.service.SongService;
+import tech.zolhungaj.amqcontestbot.room.lobby.LobbyStateManager;
 
 import java.time.Duration;
 import java.time.Instant;
@@ -26,6 +24,7 @@ import java.util.Map;
 public class GameManager {
     private final ApiManager api;
     private final SongService songService;
+    private final LobbyStateManager lobbyStateManager;
     private final Map<Integer, GameContestant> contestants = new HashMap<>();
 
     /** map over players contained in contestants, used to update disconnects*/
@@ -48,9 +47,7 @@ public class GameManager {
         //TODO:game end, including incorrect end
         //TODO:disconnect
         api.on(AnswerResults.class, this::answerResults);
-        api.on(PlayNextSong.class, playNextSong -> {
-            roundStartTime = Instant.now();
-        });
+        api.on(PlayNextSong.class, playNextSong -> roundStartTime = Instant.now());
         api.on(PlayersAnswered.class, playersAnswered -> {
             Instant now = Instant.now();
             if(inGame){
@@ -62,6 +59,15 @@ public class GameManager {
                     }
                 });
             }
+        });
+        api.on(AnswerReveal.class, answerReveal -> {
+            Instant now = Instant.now();
+            //as a backup, anyone who has an answer at this point but no answer time, gets the round time
+            answerReveal
+                    .answers()
+                    .stream()
+                    .filter(answer -> answer.answer() != null && !answer.answer().isBlank())
+                    .forEach(answer -> playerAnswerTimes.putIfAbsent(answer.gamePlayerId(), Duration.between(roundStartTime, now)));
         });
     }
 
@@ -97,13 +103,8 @@ public class GameManager {
             log.error("gamePlayerId not in contestants {}, {}", answerResult.gamePlayerId(), answerResult);
             return;
         }
-        if(answerResult.correct()){
-            //TODO: different behaviour for different modes
-            gameContestant.incrementScore();
-            gameContestant.incrementCorrectCount();
-        }else{
-            gameContestant.incrementWrongCount();
-        }
+        Duration playerAnswerTime = playerAnswerTimes.get(answerResult.gamePlayerId());
+        lobbyStateManager.getGameMode().score(gameContestant, answerResult, playerAnswerTime);
     }
 
     private void recordAnswerResultsPerTeam(List<PlayerAnswerResult> answerResults, SongEntity songEntity){

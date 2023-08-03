@@ -9,7 +9,7 @@ import java.util.List;
 import java.util.Random;
 import java.util.random.RandomGenerator;
 
-public class MasterOfSeasonsGameMode extends AbstractScoreGameMode {
+public sealed class MasterOfSeasonsGameMode extends AbstractCountGameMode permits MasterOfTheSeasonGameMode{
     private static final int SONG_COUNT = 20;
     private static final GameSettings BASE_GAME_SETTINGS = GameSettings.DEFAULT
             .toBuilder()

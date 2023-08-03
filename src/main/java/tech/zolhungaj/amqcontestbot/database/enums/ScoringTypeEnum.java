@@ -1,8 +1,8 @@
 package tech.zolhungaj.amqcontestbot.database.enums;
 
 public enum ScoringTypeEnum {
-    SCORE,
+    COUNT,
+    SPEEDRUN,
     SPEED,
-    QUICK_PLAY,
     LIVES
 }
