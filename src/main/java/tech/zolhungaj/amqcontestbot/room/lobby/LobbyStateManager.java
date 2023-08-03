@@ -24,7 +24,10 @@ import tech.zolhungaj.amqapi.servercommands.globalstate.LoginComplete;
 import tech.zolhungaj.amqapi.sharedobjects.gamesettings.GameSettings;
 import tech.zolhungaj.amqcontestbot.ApiManager;
 import tech.zolhungaj.amqcontestbot.chat.ChatController;
+import tech.zolhungaj.amqcontestbot.database.enums.RulesetEnum;
+import tech.zolhungaj.amqcontestbot.database.enums.ScoringTypeEnum;
 import tech.zolhungaj.amqcontestbot.gamemode.GameMode;
+import tech.zolhungaj.amqcontestbot.gamemode.GameModeFactory;
 import tech.zolhungaj.amqcontestbot.gamemode.MasterOfSeasonsGameMode;
 
 import java.util.*;
@@ -42,7 +45,7 @@ public class LobbyStateManager {
     private final ChatController chatController;
     @Setter
     @Getter
-    private GameMode gameMode = new MasterOfSeasonsGameMode();
+    private GameMode gameMode = GameModeFactory.getGameMode(RulesetEnum.MASTER_OF_SEASONS, ScoringTypeEnum.COUNT);
     @Getter
     private boolean inLobby = false;
     private final Map<Integer, LobbyPlayer> players = new ConcurrentHashMap<>();

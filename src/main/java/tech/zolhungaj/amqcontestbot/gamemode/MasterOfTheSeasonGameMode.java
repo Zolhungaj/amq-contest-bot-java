@@ -6,7 +6,7 @@ import tech.zolhungaj.amqcontestbot.database.enums.RulesetEnum;
 
 /**
  * Master of the Season is like Master of Seasons, just with a player-selected season*/
-public class MasterOfTheSeasonGameMode extends MasterOfSeasonsGameMode {
+public abstract class MasterOfTheSeasonGameMode extends MasterOfSeasonsGameMode {
 
     private Vintage currentVintage = super.randomVintage();
     @Override

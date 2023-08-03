@@ -14,9 +14,10 @@ import tech.zolhungaj.amqcontestbot.ApiManager;
 import tech.zolhungaj.amqcontestbot.chat.ChatCommands;
 import tech.zolhungaj.amqcontestbot.chat.ChatController;
 import tech.zolhungaj.amqcontestbot.chat.VoteManager;
+import tech.zolhungaj.amqcontestbot.database.enums.RulesetEnum;
+import tech.zolhungaj.amqcontestbot.database.enums.ScoringTypeEnum;
 import tech.zolhungaj.amqcontestbot.gamemode.GameMode;
-import tech.zolhungaj.amqcontestbot.gamemode.MasterOfSeasonsGameMode;
-import tech.zolhungaj.amqcontestbot.gamemode.MasterOfTheSeasonGameMode;
+import tech.zolhungaj.amqcontestbot.gamemode.GameModeFactory;
 
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
@@ -53,23 +54,35 @@ public class LobbyManager {
                 chatController.send("gamemode.vote.not-in-lobby");
                 return;
             }
-            String gameModeName = String.join(" ", arguments);
-            GameMode gameMode = switch (gameModeName.toLowerCase()){
-                case "master of seasons", "mos" -> new MasterOfSeasonsGameMode();
-                case "master of the season", "mots" -> new MasterOfTheSeasonGameMode();
-                default -> null;
-            };
-            if(gameMode == null){
-                chatController.send("gamemode.vote.invalid", gameModeName);
+            if(arguments.size() < 2){
+                throw new IllegalArgumentException("Not enough arguments");
+            }
+            String ruleset = arguments.get(0);
+            RulesetEnum rulesetEnum = RulesetEnum.fromName(ruleset);
+            if(rulesetEnum == null){
+                chatController.send("gamemode.vote.invalid-ruleset", ruleset);
                 return;
             }
+            String scoringMode = arguments.get(1);
+            ScoringTypeEnum scoringTypeEnum = ScoringTypeEnum.fromName(scoringMode);
+            if(scoringTypeEnum == null){
+                chatController.send("gamemode.vote.invalid-scoring-mode", scoringMode);
+                return;
+            }
+            final GameMode gameMode;
+            if(arguments.size() < 3){
+                gameMode = GameModeFactory.getGameMode(rulesetEnum, scoringTypeEnum);
+            }else{
+                int teamSize = Integer.parseInt(arguments.get(2));
+                gameMode = GameModeFactory.getGameMode(rulesetEnum, scoringTypeEnum, teamSize);
+            }
             if(gameMode.sameGameMode(stateManager.getGameMode())){
-                chatController.send("gamemode.vote.already-current-gamemode", gameModeName);
+                chatController.send("gamemode.vote.already-current-gamemode", ruleset);
                 return;
             }
             voteManager.startVote(stateManager.getPlayerNames(), () -> {
                 stateManager.setGameMode(gameMode);
-                chatController.send("gamemode.vote.success", gameModeName);
+                chatController.send("gamemode.vote.success", ruleset, scoringMode);
             }, sender);
         }, "gamemode");
     }
