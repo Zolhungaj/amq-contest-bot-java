@@ -1,6 +1,5 @@
 package tech.zolhungaj.amqcontestbot.gamemode;
 
-import lombok.With;
 import tech.zolhungaj.amqapi.servercommands.objects.PlayerAnswerResult;
 import tech.zolhungaj.amqapi.sharedobjects.gamesettings.GameSettings;
 import tech.zolhungaj.amqcontestbot.database.enums.RulesetEnum;

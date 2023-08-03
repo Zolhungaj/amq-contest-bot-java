@@ -28,7 +28,6 @@ import tech.zolhungaj.amqcontestbot.database.enums.RulesetEnum;
 import tech.zolhungaj.amqcontestbot.database.enums.ScoringTypeEnum;
 import tech.zolhungaj.amqcontestbot.gamemode.GameMode;
 import tech.zolhungaj.amqcontestbot.gamemode.GameModeFactory;
-import tech.zolhungaj.amqcontestbot.gamemode.MasterOfSeasonsGameMode;
 
 import java.util.*;
 import java.util.concurrent.*;
