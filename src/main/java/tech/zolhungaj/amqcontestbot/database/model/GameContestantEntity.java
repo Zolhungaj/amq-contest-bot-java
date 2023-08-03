@@ -13,7 +13,6 @@ public class GameContestantEntity {
     private int id;
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "game_id", referencedColumnName = "id", insertable = false, updatable = false)
-    @Column(name = "game_id")
     private GameEntity game;
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "contestant_id", referencedColumnName = "id", insertable = false, updatable = false)
