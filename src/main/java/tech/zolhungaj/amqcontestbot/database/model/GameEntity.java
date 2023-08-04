@@ -3,7 +3,7 @@ package tech.zolhungaj.amqcontestbot.database.model;
 import jakarta.persistence.*;
 import lombok.Data;
 
-import java.sql.Timestamp;
+import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.Set;
 
@@ -20,10 +20,10 @@ public class GameEntity {
     private GameModeEntity gameMode;
     @Basic
     @Column(name = "start")
-    private Timestamp start;
+    private OffsetDateTime start;
     @Basic
     @Column(name = "finish")
-    private Timestamp finish;
+    private OffsetDateTime finish;
 
     @OneToMany(mappedBy = "game")
     private List<GameSongEntity> songs;

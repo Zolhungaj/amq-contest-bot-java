@@ -1,10 +1,13 @@
 package tech.zolhungaj.amqcontestbot.gamemode;
 
+import lombok.AccessLevel;
+import lombok.NoArgsConstructor;
 import lombok.NonNull;
 import tech.zolhungaj.amqapi.sharedobjects.gamesettings.*;
 import tech.zolhungaj.amqcontestbot.database.enums.RulesetEnum;
 import tech.zolhungaj.amqcontestbot.database.enums.ScoringTypeEnum;
 
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class GameModeFactory {
     private static final int SONG_COUNT = 100;
     private static final GameSettings BASE_RANDOM_SETTINGS = GameSettings.DEFAULT.toBuilder()
@@ -27,6 +30,10 @@ public class GameModeFactory {
                 public GameSettings getNextSettings() {
                     return super.getNextSettings().withTeamSize(teamSize);
                 }
+                @Override
+                public int teamSize() {
+                    return teamSize;
+                }
             };
         }
         if(ruleset == RulesetEnum.MASTER_OF_SEASONS){
@@ -37,6 +44,10 @@ public class GameModeFactory {
                 @Override
                 public GameSettings getNextSettings() {
                     return super.getNextSettings().withTeamSize(teamSize);
+                }
+                @Override
+                public int teamSize() {
+                    return teamSize;
                 }
             };
         }
@@ -77,6 +88,10 @@ public class GameModeFactory {
                 public RulesetEnum ruleset() {
                     return ruleset;
                 }
+                @Override
+                public int teamSize() {
+                    return teamSize;
+                }
             };
             case SPEEDRUN -> new AbstractSpeedrunGameMode() {
                 @Override
@@ -87,6 +102,10 @@ public class GameModeFactory {
                 @Override
                 public RulesetEnum ruleset() {
                     return ruleset;
+                }
+                @Override
+                public int teamSize() {
+                    return teamSize;
                 }
             };
             case SPEED, LIVES -> throw new IllegalArgumentException("Not implemented yet");

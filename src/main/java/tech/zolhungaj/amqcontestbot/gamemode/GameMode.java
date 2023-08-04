@@ -15,6 +15,7 @@ public sealed interface GameMode permits AbstractGameMode{
     void rank(Collection<GameContestant> contestants);
     RulesetEnum ruleset();
     ScoringTypeEnum scoringType();
+    int teamSize();
 
     default boolean sameGameMode(GameMode gameMode){
         if(gameMode == null) return false;

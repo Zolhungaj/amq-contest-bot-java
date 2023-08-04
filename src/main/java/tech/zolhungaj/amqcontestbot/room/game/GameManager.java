@@ -8,8 +8,13 @@ import tech.zolhungaj.amqapi.servercommands.gameroom.game.*;
 import tech.zolhungaj.amqapi.servercommands.globalstate.LoginComplete;
 import tech.zolhungaj.amqapi.servercommands.objects.PlayerAnswerResult;
 import tech.zolhungaj.amqcontestbot.ApiManager;
+import tech.zolhungaj.amqcontestbot.database.model.GameContestantEntity;
+import tech.zolhungaj.amqcontestbot.database.model.GameEntity;
+import tech.zolhungaj.amqcontestbot.database.model.GameSongEntity;
 import tech.zolhungaj.amqcontestbot.database.model.SongEntity;
+import tech.zolhungaj.amqcontestbot.database.service.GameService;
 import tech.zolhungaj.amqcontestbot.database.service.SongService;
+import tech.zolhungaj.amqcontestbot.gamemode.GameMode;
 import tech.zolhungaj.amqcontestbot.room.lobby.LobbyStateManager;
 
 import java.time.Duration;
@@ -17,6 +22,7 @@ import java.time.Instant;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.time.OffsetDateTime;
 
 @Slf4j
 @Component
@@ -24,21 +30,17 @@ import java.util.Map;
 public class GameManager {
     private final ApiManager api;
     private final SongService songService;
+    private final GameService gameService;
     private final LobbyStateManager lobbyStateManager;
     private final Map<Integer, GameContestant> contestants = new HashMap<>();
+    private final Map<Integer, GameContestantEntity> databaseContestants = new HashMap<>();
 
     /** map over players contained in contestants, used to update disconnects*/
     private final Map<Integer, PlayerInformation> players = new HashMap<>();
     private final Map<Integer, Duration> playerAnswerTimes = new HashMap<>();
-
+    private GameEntity currentGame;
+    private GameMode currentGameMode;
     private Instant roundStartTime;
-    private boolean inGame = false;
-    private Mode mode = Mode.PLAYER;//TODO hook up
-
-    private enum Mode{
-        TEAM,
-        PLAYER
-    }
 
     @PostConstruct
     private void init(){
@@ -50,7 +52,7 @@ public class GameManager {
         api.on(PlayNextSong.class, playNextSong -> roundStartTime = Instant.now());
         api.on(PlayersAnswered.class, playersAnswered -> {
             Instant now = Instant.now();
-            if(inGame){
+            if(currentGame != null){
                 playersAnswered.gamePlayerIds().forEach(gamePlayerId -> {
                     if(players.containsKey(gamePlayerId)){
                         playerAnswerTimes.put(gamePlayerId, Duration.between(roundStartTime, now));
@@ -73,7 +75,23 @@ public class GameManager {
 
     private void startGame(GameStarting info){
         reset();
-        inGame = true;
+        currentGameMode = lobbyStateManager.getGameMode();
+        currentGame = gameService.startGame(currentGameMode.ruleset(), currentGameMode.scoringType(), currentGameMode.teamSize());
+        //TODO: add contestants
+    }
+
+    private void finishGame(){
+        if(currentGame == null){
+            return;
+        }
+        currentGameMode.rank(contestants.values());
+        updateGameContestants();
+        gameService.finishGame(currentGame);
+        reset();
+    }
+
+    private void updateGameContestants(){
+        //TODO
     }
 
     private void handleDisconnect(int gamePlayerId, boolean disconnected){
@@ -88,17 +106,20 @@ public class GameManager {
     private void answerResults(AnswerResults answerResults){
         //songs are worth tracking regardless of whether a game is in progress
         SongEntity songEntity = songService.updateAndGetSongEntityFromSongInfo(answerResults.songInfo());
-        if(!inGame){
+        if(currentGame == null){
             return;
         }
-        switch (mode){
-            case PLAYER -> answerResults.players().forEach(player -> recordAnswerResultsPerPlayer(player, songEntity));
-            case TEAM -> recordAnswerResultsPerTeam(answerResults.players(), songEntity);
+        GameSongEntity gameSongEntity = gameService.createGameSong(currentGame, songEntity);
+        if(currentGameMode.teamSize() == 1){
+            answerResults.players().forEach(player -> recordAnswerResultsPerPlayer(player, gameSongEntity));
+        }else{
+            recordAnswerResultsPerTeam(answerResults.players(), gameSongEntity);
         }
     }
 
-    private void recordAnswerResultsPerPlayer(PlayerAnswerResult answerResult, SongEntity songEntity){
+    private void recordAnswerResultsPerPlayer(PlayerAnswerResult answerResult, GameSongEntity gameSong){
         GameContestant gameContestant = contestants.get(answerResult.gamePlayerId());
+        GameContestantEntity databaseContestant = databaseContestants.get(answerResult.gamePlayerId());
         if(gameContestant == null){
             log.error("gamePlayerId not in contestants {}, {}", answerResult.gamePlayerId(), answerResult);
             return;
@@ -107,14 +128,16 @@ public class GameManager {
         lobbyStateManager.getGameMode().score(gameContestant, answerResult, playerAnswerTime);
     }
 
-    private void recordAnswerResultsPerTeam(List<PlayerAnswerResult> answerResults, SongEntity songEntity){
+    private void recordAnswerResultsPerTeam(List<PlayerAnswerResult> answerResults, GameSongEntity gameSong){
         //TODO
     }
 
     private void reset(){
         contestants.clear();
+        databaseContestants.clear();
         players.clear();
         playerAnswerTimes.clear();
-        inGame = false;
+        currentGame = null;
+        currentGameMode = null;
     }
 }
