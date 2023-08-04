@@ -16,14 +16,15 @@ public abstract non-sealed class AbstractGameMode implements GameMode{
         if(answerResult.correct()){
             contestant.incrementCorrectCount();
         }else{
-            contestant.incrementWrongCount();
+            contestant.incrementMissCount();
         }
 
         if(playerAnswerTime != null){
             long timeInMilliseconds = playerAnswerTime.toMillis();
-            contestant.addTime(timeInMilliseconds);
             if(answerResult.correct()) {
                 contestant.addCorrectTime(timeInMilliseconds);
+            }else{
+                contestant.addMissTime(timeInMilliseconds);
             }
         }
     }

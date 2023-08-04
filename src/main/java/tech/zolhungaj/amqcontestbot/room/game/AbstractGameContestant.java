@@ -9,10 +9,10 @@ public sealed class AbstractGameContestant implements GameContestant permits Con
     private int score = 0;
     private int gameModeScore = 0;
     private int correctCount = 0;
-    private int wrongCount = 0;
+    private int missCount = 0;
     @Setter
     private int position = -1;
-    private long time = 0;
+    private long missTime = 0;
     private long correctTime = 0;
 
 
@@ -32,13 +32,13 @@ public sealed class AbstractGameContestant implements GameContestant permits Con
     }
 
     @Override
-    public void incrementWrongCount() {
-        wrongCount++;
+    public void incrementMissCount() {
+        missCount++;
     }
 
     @Override
-    public void addTime(long time) {
-        this.time += time;
+    public void addMissTime(long time) {
+        this.missTime += time;
     }
 
     @Override

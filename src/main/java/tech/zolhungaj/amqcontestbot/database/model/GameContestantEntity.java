@@ -18,8 +18,14 @@ public class GameContestantEntity {
     @JoinColumn(name = "contestant_id", referencedColumnName = "id", insertable = false, updatable = false)
     private ContestantEntity contestant;
     @Basic
+    @Column(name = "position")
+    private int position = -1;
+    @Basic
     @Column(name = "score")
     private int score = 0;
+    @Basic
+    @Column(name = "game_mode_score")
+    private int gameModeScore = 0;
     @Basic
     @Column(name = "correct_count")
     private int correctCount = 0;

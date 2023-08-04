@@ -5,15 +5,15 @@ public sealed interface GameContestant permits AbstractGameContestant {
     void setScore(int score);
     int getGameModeScore();
     int getCorrectCount();
-    int getWrongCount();
+    int getMissCount();
     void addGameModeScore(int add);
     void incrementGameModeScore();
     void incrementCorrectCount();
-    void incrementWrongCount();
+    void incrementMissCount();
     int getPosition();
     void setPosition(int position);
-    long getTime();
-    void addTime(long time);
+    long getMissTime();
+    void addMissTime(long time);
     long getCorrectTime();
     void addCorrectTime(long time);
 }
