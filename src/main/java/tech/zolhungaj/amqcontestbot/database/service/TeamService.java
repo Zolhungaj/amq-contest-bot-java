@@ -5,13 +5,11 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import tech.zolhungaj.amqcontestbot.database.model.PlayerEntity;
 import tech.zolhungaj.amqcontestbot.database.model.TeamEntity;
-import tech.zolhungaj.amqcontestbot.database.repository.PlayerRepository;
 import tech.zolhungaj.amqcontestbot.database.repository.TeamRepository;
 
 import java.util.Collection;
 import java.util.Optional;
 import java.util.Set;
-import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
