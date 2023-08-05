@@ -47,7 +47,6 @@ public class GameManager {
     private void init(){
         api.on(LoginComplete.class, loginComplete -> reset());
         api.on(GameStarting.class, this::startGame);
-        //TODO:game end, including incorrect end
         //TODO:disconnect
         api.on(AnswerResults.class, this::answerResults);
         api.on(PlayNextSong.class, playNextSong -> roundStartTime = Instant.now());
@@ -75,6 +74,8 @@ public class GameManager {
                         playerAnswers.put(answer.gamePlayerId(), answer.answer());
                     });
         });
+        api.on(QuizFatalError.class, quizFatalError -> finishGame());
+        api.on(QuizOver.class, quizOver -> finishGame());
     }
 
     private void startGame(GameStarting info){
