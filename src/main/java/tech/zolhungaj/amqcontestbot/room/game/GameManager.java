@@ -12,15 +12,14 @@ import tech.zolhungaj.amqcontestbot.database.model.*;
 import tech.zolhungaj.amqcontestbot.database.service.GameService;
 import tech.zolhungaj.amqcontestbot.database.service.PlayerService;
 import tech.zolhungaj.amqcontestbot.database.service.SongService;
+import tech.zolhungaj.amqcontestbot.database.service.TeamService;
 import tech.zolhungaj.amqcontestbot.gamemode.GameMode;
 import tech.zolhungaj.amqcontestbot.moderation.NameResolver;
 import tech.zolhungaj.amqcontestbot.room.lobby.LobbyStateManager;
 
 import java.time.Duration;
 import java.time.Instant;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 @Slf4j
 @Component
@@ -30,6 +29,7 @@ public class GameManager {
     private final SongService songService;
     private final GameService gameService;
     private final PlayerService playerService;
+    private final TeamService teamService;
     private final LobbyStateManager lobbyStateManager;
     private final NameResolver nameResolver;
     private final Map<Integer, GameContestant> contestants = new HashMap<>();
@@ -78,20 +78,46 @@ public class GameManager {
         currentGameMode = lobbyStateManager.getGameMode();
         currentGame = gameService.startGame(currentGameMode.ruleset(), currentGameMode.scoringType(), currentGameMode.teamSize());
         if(currentGameMode.teamSize() == 1){
-            info.players().forEach(quizPlayer -> {
-                ContestantPlayer contestant = new ContestantPlayer(quizPlayer.gamePlayerId(), quizPlayer.playerName());
-                contestants.put(quizPlayer.gamePlayerId(), contestant);
-                players.put(quizPlayer.gamePlayerId(), contestant);
-                String nickname = quizPlayer.playerName();
+            info.players()
+                    .stream()
+                    .map(quizPlayer -> new ContestantPlayer(quizPlayer.gamePlayerId(), quizPlayer.playerName()))
+                    .forEach( contestant -> {
+                contestants.put(contestant.getGamePlayerId(), contestant);
+                players.put(contestant.getGamePlayerId(), contestant);
+                String nickname = contestant.getPlayerName();
                 String playerOriginalName = nameResolver.resolveOriginalName(nickname);
                 PlayerEntity player = playerService.getPlayer(playerOriginalName).orElseThrow();
                 PlayerContestantEntity contestantEntity = player.getContestant();
                 assert contestantEntity != null;
                 GameContestantEntity gameContestantEntity = gameService.createGameContestant(currentGame, contestantEntity);
-                databaseContestants.put(quizPlayer.gamePlayerId(), gameContestantEntity);
+                databaseContestants.put(contestant.getGamePlayerId(), gameContestantEntity);
             });
         }else{
-            //TODO: teams
+            Map<Integer, List<TeamPlayer>> teams = new HashMap<>();
+            info.players()
+                    .stream()
+                    .map(quizPlayer -> new TeamPlayer(quizPlayer.gamePlayerId(), quizPlayer.playerName(), quizPlayer.teamNumber().orElseThrow()))
+                    .forEach(teamPlayer -> {
+                teams.putIfAbsent(teamPlayer.getTeamNumber(), new ArrayList<>());
+                teams.get(teamPlayer.getTeamNumber())
+                        .add(teamPlayer);
+                players.put(teamPlayer.getGamePlayerId(), teamPlayer);
+            });
+            teams.keySet().forEach(teamNumber -> {
+                List<TeamPlayer> teamPlayers = teams.get(teamNumber);
+                ContestantTeam contestantTeam = new ContestantTeam(teamNumber, teamPlayers);
+                contestants.put(teamNumber, contestantTeam);
+
+                List<PlayerEntity> playerEntities = teamPlayers.stream()
+                        .map(TeamPlayer::getPlayerName)
+                        .map(nameResolver::resolveOriginalName)
+                        .map(playerService::getPlayer)
+                        .map(Optional::orElseThrow)
+                        .toList();
+                TeamEntity team = teamService.getOrCreateTeam(playerEntities);
+                GameContestantEntity gameTeamEntity = gameService.createGameContestant(currentGame, team.getContestant());
+                databaseContestants.put(teamNumber, gameTeamEntity);
+            });
         }
     }
 
