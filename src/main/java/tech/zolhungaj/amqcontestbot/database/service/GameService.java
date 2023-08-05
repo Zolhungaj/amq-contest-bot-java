@@ -15,7 +15,7 @@ import java.util.Optional;
 @Service
 @RequiredArgsConstructor
 public class GameService {
-    private final GameModeRepository gameModeRepository;
+    private final GameModeRepository modeRepository;
     private final GameRepository gameRepository;
 
     public GameEntity startGame(RulesetEnum ruleset, ScoringTypeEnum scoringTypeEnum, int teamSize){
@@ -51,7 +51,7 @@ public class GameService {
     }
 
     private GameModeEntity getOrCreateGameMode(RulesetEnum ruleset, ScoringTypeEnum scoringTypeEnum, int teamSize){
-        Optional<GameModeEntity> optional = gameModeRepository.findByRulesetAndScoringTypeAndTeamSize(ruleset, scoringTypeEnum, teamSize);
+        Optional<GameModeEntity> optional = modeRepository.findByRulesetAndScoringTypeAndTeamSize(ruleset, scoringTypeEnum, teamSize);
         if(optional.isPresent()){
             return optional.get();
         }
@@ -60,6 +60,6 @@ public class GameService {
         gameModeEntity.setScoringType(scoringTypeEnum);
         gameModeEntity.setTeamSize(teamSize);
         gameModeEntity.setGameModeName(ruleset.name() + " " + scoringTypeEnum.name() + " " + teamSize);
-        return gameModeRepository.save(gameModeEntity);
+        return modeRepository.save(gameModeEntity);
     }
 }

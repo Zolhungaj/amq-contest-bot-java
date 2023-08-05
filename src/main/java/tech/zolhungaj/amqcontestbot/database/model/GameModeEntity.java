@@ -16,10 +16,10 @@ public class GameModeEntity {
     @Basic
     @Column(name = "name")
     private String gameModeName;
-    @Basic
+    @Enumerated(EnumType.STRING)
     @Column(name = "ruleset")
     private RulesetEnum ruleset;
-    @Basic
+    @Enumerated(EnumType.STRING)
     @Column(name = "scoring_type")
     private ScoringTypeEnum scoringType;
     @Basic
