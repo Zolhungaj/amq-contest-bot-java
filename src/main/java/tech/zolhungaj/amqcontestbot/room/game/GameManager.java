@@ -8,13 +8,12 @@ import tech.zolhungaj.amqapi.servercommands.gameroom.game.*;
 import tech.zolhungaj.amqapi.servercommands.globalstate.LoginComplete;
 import tech.zolhungaj.amqapi.servercommands.objects.PlayerAnswerResult;
 import tech.zolhungaj.amqcontestbot.ApiManager;
-import tech.zolhungaj.amqcontestbot.database.model.GameContestantEntity;
-import tech.zolhungaj.amqcontestbot.database.model.GameEntity;
-import tech.zolhungaj.amqcontestbot.database.model.GameSongEntity;
-import tech.zolhungaj.amqcontestbot.database.model.SongEntity;
+import tech.zolhungaj.amqcontestbot.database.model.*;
 import tech.zolhungaj.amqcontestbot.database.service.GameService;
+import tech.zolhungaj.amqcontestbot.database.service.PlayerService;
 import tech.zolhungaj.amqcontestbot.database.service.SongService;
 import tech.zolhungaj.amqcontestbot.gamemode.GameMode;
+import tech.zolhungaj.amqcontestbot.moderation.NameResolver;
 import tech.zolhungaj.amqcontestbot.room.lobby.LobbyStateManager;
 
 import java.time.Duration;
@@ -22,7 +21,6 @@ import java.time.Instant;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.time.OffsetDateTime;
 
 @Slf4j
 @Component
@@ -31,7 +29,9 @@ public class GameManager {
     private final ApiManager api;
     private final SongService songService;
     private final GameService gameService;
+    private final PlayerService playerService;
     private final LobbyStateManager lobbyStateManager;
+    private final NameResolver nameResolver;
     private final Map<Integer, GameContestant> contestants = new HashMap<>();
     private final Map<Integer, GameContestantEntity> databaseContestants = new HashMap<>();
 
@@ -77,7 +77,22 @@ public class GameManager {
         reset();
         currentGameMode = lobbyStateManager.getGameMode();
         currentGame = gameService.startGame(currentGameMode.ruleset(), currentGameMode.scoringType(), currentGameMode.teamSize());
-        //TODO: add contestants
+        if(currentGameMode.teamSize() == 1){
+            info.players().forEach(quizPlayer -> {
+                ContestantPlayer contestant = new ContestantPlayer(quizPlayer.gamePlayerId(), quizPlayer.playerName());
+                contestants.put(quizPlayer.gamePlayerId(), contestant);
+                players.put(quizPlayer.gamePlayerId(), contestant);
+                String nickname = quizPlayer.playerName();
+                String playerOriginalName = nameResolver.resolveOriginalName(nickname);
+                PlayerEntity player = playerService.getPlayer(playerOriginalName).orElseThrow();
+                PlayerContestantEntity contestantEntity = player.getContestant();
+                assert contestantEntity != null;
+                GameContestantEntity gameContestantEntity = gameService.createGameContestant(currentGame, contestantEntity);
+                databaseContestants.put(quizPlayer.gamePlayerId(), gameContestantEntity);
+            });
+        }else{
+            //TODO: teams
+        }
     }
 
     private void finishGame(){

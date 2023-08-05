@@ -5,7 +5,6 @@ import lombok.Data;
 
 import java.time.OffsetDateTime;
 import java.util.List;
-import java.util.Set;
 
 @Data
 @Entity
@@ -29,5 +28,5 @@ public class GameEntity {
     private List<GameSongEntity> songs;
 
     @OneToMany(mappedBy = "game")
-    private Set<GameContestantEntity> contestants;
+    private List<GameContestantEntity> contestants;
 }

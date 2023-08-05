@@ -5,10 +5,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import tech.zolhungaj.amqcontestbot.database.enums.RulesetEnum;
 import tech.zolhungaj.amqcontestbot.database.enums.ScoringTypeEnum;
-import tech.zolhungaj.amqcontestbot.database.model.GameEntity;
-import tech.zolhungaj.amqcontestbot.database.model.GameModeEntity;
-import tech.zolhungaj.amqcontestbot.database.model.GameSongEntity;
-import tech.zolhungaj.amqcontestbot.database.model.SongEntity;
+import tech.zolhungaj.amqcontestbot.database.model.*;
 import tech.zolhungaj.amqcontestbot.database.repository.GameModeRepository;
 import tech.zolhungaj.amqcontestbot.database.repository.GameRepository;
 
@@ -32,6 +29,15 @@ public class GameService {
     public void finishGame(@NonNull GameEntity gameEntity){
         gameEntity.setFinish(OffsetDateTime.now());
         gameRepository.save(gameEntity);
+    }
+
+    public GameContestantEntity createGameContestant(@NonNull GameEntity game, @NonNull ContestantEntity contestant){
+        GameContestantEntity gameContestantEntity = new GameContestantEntity();
+        gameContestantEntity.setGame(game);
+        gameContestantEntity.setContestant(contestant);
+        int index = game.getContestants().size();
+        game.getContestants().add(gameContestantEntity);
+        return gameRepository.save(game).getContestants().get(index);
     }
 
     public GameSongEntity createGameSong(@NonNull GameEntity game, @NonNull SongEntity song){
