@@ -38,6 +38,7 @@ public class GameManager {
     /** map over players contained in contestants, used to update disconnects*/
     private final Map<Integer, PlayerInformation> players = new HashMap<>();
     private final Map<Integer, Duration> playerAnswerTimes = new HashMap<>();
+    private final Map<Integer, String> playerAnswers = new HashMap<>();
     private GameEntity currentGame;
     private GameMode currentGameMode;
     private Instant roundStartTime;
@@ -69,7 +70,10 @@ public class GameManager {
                     .answers()
                     .stream()
                     .filter(answer -> answer.answer() != null && !answer.answer().isBlank())
-                    .forEach(answer -> playerAnswerTimes.putIfAbsent(answer.gamePlayerId(), Duration.between(roundStartTime, now)));
+                    .forEach(answer -> {
+                        playerAnswerTimes.putIfAbsent(answer.gamePlayerId(), Duration.between(roundStartTime, now));
+                        playerAnswers.put(answer.gamePlayerId(), answer.answer());
+                    });
         });
     }
 
@@ -163,6 +167,10 @@ public class GameManager {
             recordAnswerResultsPerTeam(answerResults.players(), gameSongEntity);
         }
         updateGameContestants();
+
+        //discard once they are recorded
+        playerAnswerTimes.clear();
+        playerAnswers.clear();
     }
 
     private void recordAnswerResultsPerPlayer(PlayerAnswerResult answerResult, GameSongEntity gameSong){
@@ -173,6 +181,7 @@ public class GameManager {
             return;
         }
         Duration playerAnswerTime = playerAnswerTimes.get(answerResult.gamePlayerId());
+        gameService.createGameAnswer(gameSong, databaseContestant.getContestant(), answerResult.correct(), playerAnswers.get(answerResult.gamePlayerId()), playerAnswerTime);
         lobbyStateManager.getGameMode().score(gameContestant, answerResult, playerAnswerTime);
     }
 

@@ -6,11 +6,9 @@ import org.springframework.stereotype.Service;
 import tech.zolhungaj.amqcontestbot.database.enums.RulesetEnum;
 import tech.zolhungaj.amqcontestbot.database.enums.ScoringTypeEnum;
 import tech.zolhungaj.amqcontestbot.database.model.*;
-import tech.zolhungaj.amqcontestbot.database.repository.GameContestantRepository;
-import tech.zolhungaj.amqcontestbot.database.repository.GameModeRepository;
-import tech.zolhungaj.amqcontestbot.database.repository.GameRepository;
-import tech.zolhungaj.amqcontestbot.database.repository.GameSongRepository;
+import tech.zolhungaj.amqcontestbot.database.repository.*;
 
+import java.time.Duration;
 import java.time.OffsetDateTime;
 import java.util.Collection;
 import java.util.Optional;
@@ -22,6 +20,7 @@ public class GameService {
     private final GameRepository gameRepository;
     private final GameContestantRepository contestantRepository;
     private final GameSongRepository songRepository;
+    private final ContestantSongAnswerRepository answerRepository;
 
     public GameEntity startGame(RulesetEnum ruleset, ScoringTypeEnum scoringTypeEnum, int teamSize){
         GameModeEntity gameModeEntity = getOrCreateGameMode(ruleset, scoringTypeEnum, teamSize);
@@ -71,5 +70,15 @@ public class GameService {
 
     public void updateGameContestants(Collection<GameContestantEntity> contestants) {
         contestantRepository.saveAll(contestants);
+    }
+
+    public void createGameAnswer(GameSongEntity gameSong, ContestantEntity contestant, boolean correct, String s, Duration playerAnswerTime) {
+        ContestantSongAnswerEntity gameAnswerEntity = new ContestantSongAnswerEntity();
+        gameAnswerEntity.setGameSong(gameSong);
+        gameAnswerEntity.setContestant(contestant);
+        gameAnswerEntity.setCorrect(correct);
+        gameAnswerEntity.setAnswer(s);
+        gameAnswerEntity.setAnswerTime(playerAnswerTime == null ? null : playerAnswerTime.toMillis());
+        answerRepository.save(gameAnswerEntity);
     }
 }
