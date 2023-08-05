@@ -2,6 +2,8 @@ package tech.zolhungaj.amqcontestbot.database.model;
 
 import jakarta.persistence.*;
 import lombok.Data;
+import lombok.NonNull;
+import tech.zolhungaj.amqcontestbot.room.game.GameContestant;
 
 @Data
 @Entity
@@ -41,4 +43,14 @@ public class GameContestantEntity {
     @Basic
     @Column(name = "deleted")
     private boolean deleted = false;
+
+    public void updateFromGameContestant(@NonNull GameContestant gameContestant){
+        this.position = gameContestant.getPosition();
+        this.score = gameContestant.getScore();
+        this.gameModeScore = gameContestant.getGameModeScore();
+        this.correctCount = gameContestant.getCorrectCount();
+        this.missCount = gameContestant.getMissCount();
+        this.correctTime = (int) gameContestant.getCorrectTime();
+        this.missTime = (int) gameContestant.getMissTime();
+    }
 }

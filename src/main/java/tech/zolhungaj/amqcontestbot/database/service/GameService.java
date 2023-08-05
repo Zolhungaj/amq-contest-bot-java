@@ -12,6 +12,7 @@ import tech.zolhungaj.amqcontestbot.database.repository.GameRepository;
 import tech.zolhungaj.amqcontestbot.database.repository.GameSongRepository;
 
 import java.time.OffsetDateTime;
+import java.util.Collection;
 import java.util.Optional;
 
 @Service
@@ -66,5 +67,9 @@ public class GameService {
         gameModeEntity.setTeamSize(teamSize);
         gameModeEntity.setGameModeName(ruleset.name() + " " + scoringTypeEnum.name() + " " + teamSize);
         return modeRepository.save(gameModeEntity);
+    }
+
+    public void updateGameContestants(Collection<GameContestantEntity> contestants) {
+        contestantRepository.saveAll(contestants);
     }
 }

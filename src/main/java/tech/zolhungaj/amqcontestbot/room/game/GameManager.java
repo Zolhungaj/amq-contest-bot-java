@@ -132,7 +132,13 @@ public class GameManager {
     }
 
     private void updateGameContestants(){
-        //TODO
+        contestants.keySet().forEach(id -> {
+            GameContestant contestant = contestants.get(id);
+            GameContestantEntity contestantEntity = databaseContestants.get(id);
+            assert contestantEntity != null;
+            contestantEntity.updateFromGameContestant(contestant);
+        });
+        gameService.updateGameContestants(databaseContestants.values());
     }
 
     private void handleDisconnect(int gamePlayerId, boolean disconnected){
@@ -156,6 +162,7 @@ public class GameManager {
         }else{
             recordAnswerResultsPerTeam(answerResults.players(), gameSongEntity);
         }
+        updateGameContestants();
     }
 
     private void recordAnswerResultsPerPlayer(PlayerAnswerResult answerResult, GameSongEntity gameSong){
