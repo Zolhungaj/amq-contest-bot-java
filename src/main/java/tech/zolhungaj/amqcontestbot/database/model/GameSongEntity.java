@@ -12,12 +12,12 @@ public class GameSongEntity {
     @Column(name = "id")
     private int id;
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "game_id", referencedColumnName = "id", insertable = false, updatable = false)
+    @JoinColumn(name = "game_id", referencedColumnName = "id", updatable = false)
     private GameEntity game;
     @Basic
     @Column(name = "ordinal")
     private int ordinal;
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "song_id", referencedColumnName = "id")
+    @JoinColumn(name = "song_id", referencedColumnName = "id", updatable = false)
     private SongEntity song;
 }

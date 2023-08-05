@@ -12,10 +12,10 @@ public class GameContestantEntity {
     @Column(name = "id")
     private int id;
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "game_id", referencedColumnName = "id", insertable = false, updatable = false)
+    @JoinColumn(name = "game_id", referencedColumnName = "id", updatable = false)
     private GameEntity game;
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "contestant_id", referencedColumnName = "id", insertable = false, updatable = false)
+    @JoinColumn(name = "contestant_id", referencedColumnName = "id", updatable = false)
     private ContestantEntity contestant;
     @Basic
     @Column(name = "position")

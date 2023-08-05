@@ -6,8 +6,10 @@ import org.springframework.stereotype.Service;
 import tech.zolhungaj.amqcontestbot.database.enums.RulesetEnum;
 import tech.zolhungaj.amqcontestbot.database.enums.ScoringTypeEnum;
 import tech.zolhungaj.amqcontestbot.database.model.*;
+import tech.zolhungaj.amqcontestbot.database.repository.GameContestantRepository;
 import tech.zolhungaj.amqcontestbot.database.repository.GameModeRepository;
 import tech.zolhungaj.amqcontestbot.database.repository.GameRepository;
+import tech.zolhungaj.amqcontestbot.database.repository.GameSongRepository;
 
 import java.time.OffsetDateTime;
 import java.util.Optional;
@@ -17,6 +19,8 @@ import java.util.Optional;
 public class GameService {
     private final GameModeRepository modeRepository;
     private final GameRepository gameRepository;
+    private final GameContestantRepository contestantRepository;
+    private final GameSongRepository songRepository;
 
     public GameEntity startGame(RulesetEnum ruleset, ScoringTypeEnum scoringTypeEnum, int teamSize){
         GameModeEntity gameModeEntity = getOrCreateGameMode(ruleset, scoringTypeEnum, teamSize);
@@ -35,19 +39,20 @@ public class GameService {
         GameContestantEntity gameContestantEntity = new GameContestantEntity();
         gameContestantEntity.setGame(game);
         gameContestantEntity.setContestant(contestant);
-        int index = game.getContestants().size();
-        game.getContestants().add(gameContestantEntity);
-        return gameRepository.save(game).getContestants().get(index);
+        return contestantRepository.save(gameContestantEntity);
     }
 
     public GameSongEntity createGameSong(@NonNull GameEntity game, @NonNull SongEntity song){
         GameSongEntity gameSongEntity = new GameSongEntity();
         gameSongEntity.setGame(game);
         gameSongEntity.setSong(song);
-        int index = game.getSongs().size();
-        gameSongEntity.setOrdinal(index);
-        game.getSongs().add(gameSongEntity);
-        return gameRepository.save(game).getSongs().get(index);
+
+        int maxOrdinal = songRepository.findFirstByGameOrderByOrdinalDesc(game)
+                .map(GameSongEntity::getOrdinal)
+                .filter(integer -> integer >= 0) //in case of database corruption, intentional or otherwise
+                .orElse(-1); //songs are indexed from 0
+        gameSongEntity.setOrdinal(maxOrdinal + 1);
+        return songRepository.save(gameSongEntity);
     }
 
     private GameModeEntity getOrCreateGameMode(RulesetEnum ruleset, ScoringTypeEnum scoringTypeEnum, int teamSize){
