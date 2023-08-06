@@ -17,6 +17,7 @@ import java.util.*;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
 import java.util.function.BiConsumer;
+import java.util.function.Predicate;
 
 /**Owner of all chat commands.
  * Chat commands are guaranteed to be executed in series, and should use blocking calls.
@@ -175,7 +176,6 @@ public class ChatCommands {
         public void run() {
             try{
                 execute();
-
             }catch(IllegalArgumentException e){
                 if(e instanceof IncorrectCommandUsageException e2){
                     chatController.send(e2.getI18nIdentifier(), e2.getArguments());
@@ -186,33 +186,17 @@ public class ChatCommands {
         }
 
         private void execute(){
-            CommandAccessDeniedException accessDeniedException = new CommandAccessDeniedException(sender, command.commandName, command.grant());
-            switch(command.grant()){
-                case NONE -> command.handler().accept(sender, arguments);
-                case MODERATOR -> {
-                    String originalName = nameResolver.resolveOriginalName(sender);
-                    if(moderationService.isModerator(originalName)){
-                        command.handler().accept(sender, arguments);
-                    }else{
-                        throw accessDeniedException;
-                    }
-                }
-                case ADMIN -> {
-                    String originalName = nameResolver.resolveOriginalName(sender);
-                    if(moderationService.isAdmin(originalName)){
-                        command.handler().accept(sender, arguments);
-                    }else{
-                        throw accessDeniedException;
-                    }
-                }
-                case OWNER -> {
-                    String originalName = nameResolver.resolveOriginalName(sender);
-                    if(moderationService.isOwner(originalName)){
-                        command.handler().accept(sender, arguments);
-                    }else{
-                        throw accessDeniedException;
-                    }
-                }
+            Predicate<String> hasPermission = switch (command.grant()){
+                case NONE -> s -> true;
+                case MODERATOR -> moderationService::isModerator;
+                case ADMIN -> moderationService::isAdmin;
+                case OWNER -> moderationService::isOwner;
+            };
+            String originalName = nameResolver.resolveOriginalName(sender);
+            if(hasPermission.test(originalName)){
+                command.handler().accept(sender, arguments);
+            }else{
+                throw new CommandAccessDeniedException(sender, command.commandName, command.grant());
             }
         }
     }
