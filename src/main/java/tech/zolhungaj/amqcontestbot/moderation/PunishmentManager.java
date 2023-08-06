@@ -52,14 +52,14 @@ public class PunishmentManager {
                 reason = "No reason given";
             }
             ban(nickname, sender, duration, reason);
-        }, ChatCommands.Grant.MODERATOR, "ban");
+        }, ChatCommands.Grant.ADMIN, "ban");
         chatCommands.register((sender, arguments) -> {
             if(arguments.size() != 1){
                 throw new IllegalArgumentException();
             }
             String nickname = arguments.get(0);
             unban(nickname, sender);
-        }, ChatCommands.Grant.MODERATOR, "unban");
+        }, ChatCommands.Grant.ADMIN, "unban");
     }
 
     private void registerBanTrueCommands(){
@@ -76,14 +76,14 @@ public class PunishmentManager {
                 reason = "No reason given";
             }
             banByOriginalName(originalName, sender, duration, reason);
-        }, ChatCommands.Grant.MODERATOR, "banbyoriginalname", "bantrue");
+        }, ChatCommands.Grant.ADMIN, "banbyoriginalname", "bantrue");
         chatCommands.register((sender, arguments) -> {
             if(arguments.size() != 1){
                 throw new IllegalArgumentException();
             }
             String originalName = arguments.get(0);
             unbanByOriginalName(originalName, sender);
-        }, ChatCommands.Grant.MODERATOR, "unbanbyoriginalname", "unbantrue");
+        }, ChatCommands.Grant.ADMIN, "unbanbyoriginalname", "unbantrue");
     }
 
     private void registerKickCommands(){
