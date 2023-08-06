@@ -104,7 +104,7 @@ public class ChatCommands {
     private void registerHelp(){
         register((sender, arguments) -> {
             if(arguments.isEmpty()){
-                help();
+                printCommandList(sender);
             } else if(arguments.size() == 1) {
                 String argument = arguments.get(0);
                 help(argument);
@@ -114,10 +114,24 @@ public class ChatCommands {
         }, "help", "h");
     }
 
-    private void help(){
+    private void printCommandList(String sender){
+        String originalName = nameResolver.resolveOriginalName(sender);
         Set<Command> commands = new HashSet<>(registeredCommands.values());
-        List<String> commandNames = commands.stream().map(Command::commandName).toList();
-        chatController.send("chat-commands.help", String.join(", ", commandNames));
+        Map<Grant, List<String>> commandsByGrant = new EnumMap<>(Grant.class);
+        commands.forEach(command -> commandsByGrant.computeIfAbsent(command.grant, grant -> new ArrayList<>()).add(command.commandName));
+        commandsByGrant.replaceAll((grant, commandNames) -> commandNames.stream().sorted(String::compareToIgnoreCase).toList());
+        if(commandsByGrant.containsKey(Grant.NONE)){
+            chatController.send("chat-commands.help.common", String.join(", ", commandsByGrant.get(Grant.NONE)));
+        }
+        if(commandsByGrant.containsKey(Grant.MODERATOR) && moderationService.isModerator(originalName)){
+            chatController.send("chat-commands.help.moderator", String.join(", ", commandsByGrant.get(Grant.MODERATOR)));
+        }
+        if(commandsByGrant.containsKey(Grant.ADMIN) && moderationService.isAdmin(originalName)){
+            chatController.send("chat-commands.help.admin", String.join(", ", commandsByGrant.get(Grant.ADMIN)));
+        }
+        if(commandsByGrant.containsKey(Grant.OWNER) && moderationService.isOwner(originalName)){
+            chatController.send("chat-commands.help.owner", String.join(", ", commandsByGrant.get(Grant.OWNER)));
+        }
     }
     private void help(String commandName){
         Command command = registeredCommands.get(commandName);
