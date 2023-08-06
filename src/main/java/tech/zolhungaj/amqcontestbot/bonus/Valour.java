@@ -6,6 +6,8 @@ import org.springframework.stereotype.Component;
 import tech.zolhungaj.amqcontestbot.chat.ChatCommands;
 import tech.zolhungaj.amqcontestbot.chat.ChatController;
 import tech.zolhungaj.amqcontestbot.database.service.PlayerService;
+import tech.zolhungaj.amqcontestbot.exceptions.IncorrectArgumentCountException;
+import tech.zolhungaj.amqcontestbot.exceptions.IncorrectCommandUsageException;
 
 @Component
 @RequiredArgsConstructor
@@ -17,13 +19,17 @@ public class Valour {
     @PostConstruct
     private void init(){
         chatCommands.register((sender, arguments) -> {
-            if(arguments.size() == 1){
-                double value = Double.parseDouble(arguments.get(0));
-                String result = romanNumerals(value);
-                chatController.send("bonus.roman", result);
-            }else{
-                throw new IllegalArgumentException();
+            if(arguments.size() != 1){
+                throw new IncorrectArgumentCountException(1);
             }
+            final double value;
+            try{
+                value = Double.parseDouble(arguments.get(0));
+            }catch(NumberFormatException e){
+                throw new IncorrectCommandUsageException("bonus.roman.invalid-number");
+            }
+            String result = romanNumerals(value);
+            chatController.send("bonus.roman", result);
         }, "roman");
     }
 

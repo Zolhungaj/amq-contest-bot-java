@@ -9,6 +9,8 @@ import tech.zolhungaj.amqapi.servercommands.gameroom.GameChatMessage;
 import tech.zolhungaj.amqapi.servercommands.gameroom.GameChatUpdate;
 import tech.zolhungaj.amqcontestbot.ApiManager;
 import tech.zolhungaj.amqcontestbot.database.service.ModerationService;
+import tech.zolhungaj.amqcontestbot.exceptions.CommandAccessDeniedException;
+import tech.zolhungaj.amqcontestbot.exceptions.IncorrectCommandUsageException;
 import tech.zolhungaj.amqcontestbot.moderation.NameResolver;
 
 import java.util.*;
@@ -172,36 +174,45 @@ public class ChatCommands {
         @Override
         public void run() {
             try{
-                switch(command.grant()){
-                    case NONE -> command.handler().accept(sender, arguments);
-                    case MODERATOR -> {
-                        String originalName = nameResolver.resolveOriginalName(sender);
-                        if(moderationService.isModerator(originalName) || moderationService.isAdmin(originalName) || moderationService.isOwner(originalName)){
-                            command.handler().accept(sender, arguments);
-                        }else{
-                            throw new IllegalArgumentException("Must be moderator");
-                        }
-                    }
-                    case ADMIN -> {
-                        String originalName = nameResolver.resolveOriginalName(sender);
-                        if(moderationService.isAdmin(originalName) || moderationService.isOwner(originalName)){
-                            command.handler().accept(sender, arguments);
-                        }else{
-                            throw new IllegalArgumentException("Must be admin");
-                        }
-                    }
-                    case OWNER -> {
-                        String originalName = nameResolver.resolveOriginalName(sender);
-                        if(moderationService.isOwner(originalName)){
-                            command.handler().accept(sender, arguments);
-                        }else{
-                            throw new IllegalArgumentException("Must be owner");
-                        }
-                    }
-                }
+                execute();
 
             }catch(IllegalArgumentException e){
-                chatController.send(command.i18nCanonicalNameUsage(), Objects.requireNonNullElse(e.getMessage(), ""));
+                if(e instanceof IncorrectCommandUsageException e2){
+                    chatController.send(e2.getI18nIdentifier(), e2.getArguments());
+                }else{
+                    chatController.send(command.i18nCanonicalNameUsage());
+                }
+            }
+        }
+
+        private void execute(){
+            CommandAccessDeniedException accessDeniedException = new CommandAccessDeniedException(sender, command.commandName, command.grant());
+            switch(command.grant()){
+                case NONE -> command.handler().accept(sender, arguments);
+                case MODERATOR -> {
+                    String originalName = nameResolver.resolveOriginalName(sender);
+                    if(moderationService.isModerator(originalName)){
+                        command.handler().accept(sender, arguments);
+                    }else{
+                        throw accessDeniedException;
+                    }
+                }
+                case ADMIN -> {
+                    String originalName = nameResolver.resolveOriginalName(sender);
+                    if(moderationService.isAdmin(originalName)){
+                        command.handler().accept(sender, arguments);
+                    }else{
+                        throw accessDeniedException;
+                    }
+                }
+                case OWNER -> {
+                    String originalName = nameResolver.resolveOriginalName(sender);
+                    if(moderationService.isOwner(originalName)){
+                        command.handler().accept(sender, arguments);
+                    }else{
+                        throw accessDeniedException;
+                    }
+                }
             }
         }
     }
