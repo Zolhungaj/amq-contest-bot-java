@@ -178,7 +178,7 @@ public class ChatCommands {
                 execute();
             }catch(IllegalArgumentException e){
                 if(e instanceof IncorrectCommandUsageException e2){
-                    chatController.send(e2.getI18nIdentifier(), e2.getArguments());
+                    chatController.send(e2.getI18nIdentifier(), e2.getArguments().toArray());
                 }else{
                     chatController.send(command.i18nCanonicalNameUsage());
                 }
