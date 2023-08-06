@@ -10,6 +10,7 @@ import tech.zolhungaj.amqapi.servercommands.objects.PlayerAnswerResult;
 import tech.zolhungaj.amqcontestbot.ApiManager;
 import tech.zolhungaj.amqcontestbot.database.model.*;
 import tech.zolhungaj.amqcontestbot.database.service.*;
+import tech.zolhungaj.amqcontestbot.gamemode.AnswerResult;
 import tech.zolhungaj.amqcontestbot.gamemode.GameMode;
 import tech.zolhungaj.amqcontestbot.moderation.NameResolver;
 import tech.zolhungaj.amqcontestbot.room.lobby.LobbyStateManager;
@@ -68,7 +69,9 @@ public class GameManager {
                     .stream()
                     .filter(answer -> answer.answer() != null && !answer.answer().isBlank())
                     .forEach(answer -> {
-                        playerAnswerTimes.putIfAbsent(answer.gamePlayerId(), Duration.between(roundStartTime, now));
+                        if(currentGameMode.teamSize() == 1){
+                            playerAnswerTimes.putIfAbsent(answer.gamePlayerId(), Duration.between(roundStartTime, now));
+                        } //in a team game, teammates get auto-assigned an answer at the end of the round, so we don't want the team to get fake bad times
                         playerAnswers.put(answer.gamePlayerId(), answer.answer());
                     });
         });
@@ -181,11 +184,79 @@ public class GameManager {
         }
         Duration playerAnswerTime = playerAnswerTimes.get(answerResult.gamePlayerId());
         gameService.createGameAnswer(gameSong, databaseContestant.getContestant(), answerResult.correct(), playerAnswers.get(answerResult.gamePlayerId()), playerAnswerTime);
-        lobbyStateManager.getGameMode().score(gameContestant, answerResult, playerAnswerTime);
+        lobbyStateManager.getGameMode().score(gameContestant, new AnswerResult(answerResult.score(), answerResult.correct(), playerAnswerTime));
     }
 
     private void recordAnswerResultsPerTeam(List<PlayerAnswerResult> answerResults, GameSongEntity gameSong){
-        //TODO
+        Map<Integer, Integer> gamePlayerIdToTeamNumber = new HashMap<>();
+        players.values().stream()
+                .filter(TeamPlayer.class::isInstance)
+                .map(TeamPlayer.class::cast)
+                .forEach(teamPlayer -> gamePlayerIdToTeamNumber.put(teamPlayer.getGamePlayerId(), teamPlayer.getTeamNumber()));
+        Map<Integer, String> teamNumberToAnswers = new HashMap<>(); //everyone on a team has the same answer
+        Map<Integer, Boolean> teamNumberToCorrect = new HashMap<>();//and same result
+        Map<Integer, Integer> teamNumberToScore = new HashMap<>();//and same score
+        answerResults.forEach(answerResult -> {
+            if(!gamePlayerIdToTeamNumber.containsKey(answerResult.gamePlayerId())){
+                log.error("gamePlayerId not in gamePlayerIdToTeamNumber {}, {}", answerResult.gamePlayerId(), answerResult);
+                return;
+            }
+            int teamNumber = gamePlayerIdToTeamNumber.get(answerResult.gamePlayerId());
+            String playerAnswer = playerAnswers.get(answerResult.gamePlayerId());
+            if(playerAnswer != null && !playerAnswer.isBlank()){
+                teamNumberToAnswers.put(teamNumber, playerAnswer);
+            }
+            teamNumberToCorrect.put(teamNumber, answerResult.correct());
+            teamNumberToScore.put(teamNumber, answerResult.score());
+        });
+        Map<Integer, Duration> teamNumberToCalculatedAnswerTime = calculateAnswerTimeForTeams(answerResults, gamePlayerIdToTeamNumber);
+
+        //to protect against nulls we'll use teamNumberToCorrect as the source of ids
+        teamNumberToCorrect.keySet().stream()
+                .map(contestants::get)
+                .filter(ContestantTeam.class::isInstance)
+                .map(ContestantTeam.class::cast)
+                .forEach(contestantTeam -> {
+            int teamNumber = contestantTeam.getTeamNumber();
+            GameContestantEntity gameContestantEntity = databaseContestants.get(teamNumber);
+            assert gameContestantEntity != null;
+            String answer = teamNumberToAnswers.get(teamNumber);
+            boolean correct = teamNumberToCorrect.get(teamNumber);
+            int score = teamNumberToScore.get(teamNumber);
+            Duration answerTime = teamNumberToCalculatedAnswerTime.get(teamNumber);
+            gameService.createGameAnswer(gameSong, gameContestantEntity.getContestant(), correct, answer, answerTime);
+            lobbyStateManager.getGameMode().score(contestantTeam, new AnswerResult(score, correct, answerTime));
+        });
+    }
+
+    private Map<Integer, Duration> calculateAnswerTimeForTeams(List<PlayerAnswerResult> answerResults, Map<Integer, Integer> gamePlayerIdToTeamNumber){
+        Map<Integer, List<Duration>> teamNumberToAnswerTimes = new HashMap<>();
+        answerResults.forEach(answerResult -> {
+            if(!gamePlayerIdToTeamNumber.containsKey(answerResult.gamePlayerId())){
+                log.error("gamePlayerId not in gamePlayerIdToTeamNumber {}, {}", answerResult.gamePlayerId(), answerResult);
+                return;
+            }
+            int teamNumber = gamePlayerIdToTeamNumber.get(answerResult.gamePlayerId());
+            teamNumberToAnswerTimes.putIfAbsent(teamNumber, new ArrayList<>());
+            Duration playerAnswerTime = playerAnswerTimes.get(answerResult.gamePlayerId());
+            if(playerAnswerTime != null){
+                teamNumberToAnswerTimes.get(teamNumber).add(playerAnswerTime);
+            }
+        });
+        Map<Integer, Duration> teamNumberToCalculatedAnswerTime = new HashMap<>();
+        teamNumberToAnswerTimes.forEach((teamNumber, answerTimes) -> {
+            if(answerTimes.size() == 2){
+                //as a special case, if there are only two players on a team, the answer time is the first answer time
+                //because they'll either be right together or have a tie and be wrong together
+                answerTimes.stream()
+                        .min(Duration::compareTo)
+                        .ifPresent(min -> teamNumberToCalculatedAnswerTime.put(teamNumber, min));
+            }
+            answerTimes.stream()
+                    .max(Duration::compareTo)
+                    .ifPresent(max -> teamNumberToCalculatedAnswerTime.put(teamNumber, max));
+        });
+        return teamNumberToCalculatedAnswerTime;
     }
 
     private void reset(){

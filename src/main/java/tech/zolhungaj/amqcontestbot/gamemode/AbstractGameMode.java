@@ -11,7 +11,7 @@ public abstract non-sealed class AbstractGameMode implements GameMode{
     protected abstract Comparator<GameContestant> comparator();
 
     @Override
-    public void score(GameContestant contestant, PlayerAnswerResult answerResult, Duration playerAnswerTime) {
+    public void score(GameContestant contestant, AnswerResult answerResult) {
         contestant.setScore(answerResult.score());
         if(answerResult.correct()){
             contestant.incrementCorrectCount();
@@ -19,8 +19,8 @@ public abstract non-sealed class AbstractGameMode implements GameMode{
             contestant.incrementMissCount();
         }
 
-        if(playerAnswerTime != null){
-            long timeInMilliseconds = playerAnswerTime.toMillis();
+        if(answerResult.answerTime() != null){
+            long timeInMilliseconds = answerResult.answerTime().toMillis();
             if(answerResult.correct()) {
                 contestant.addCorrectTime(timeInMilliseconds);
             }else{

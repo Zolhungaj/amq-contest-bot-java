@@ -11,7 +11,7 @@ import java.util.Collection;
 
 public sealed interface GameMode permits AbstractGameMode{
     GameSettings getNextSettings();
-    void score(GameContestant contestant, PlayerAnswerResult answerResult, Duration playerAnswerTime);
+    void score(GameContestant contestant, AnswerResult answerResult);
     void rank(Collection<GameContestant> contestants);
     RulesetEnum ruleset();
     ScoringTypeEnum scoringType();

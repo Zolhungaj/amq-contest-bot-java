@@ -1,21 +1,12 @@
 package tech.zolhungaj.amqcontestbot.gamemode;
 
-import tech.zolhungaj.amqapi.servercommands.objects.PlayerAnswerResult;
 import tech.zolhungaj.amqcontestbot.database.enums.ScoringTypeEnum;
 import tech.zolhungaj.amqcontestbot.room.game.GameContestant;
 
-import java.time.Duration;
 import java.util.*;
 
-public abstract class AbstractSpeedrunGameMode extends AbstractGameMode{
-
-    @Override
-    public final void score(GameContestant contestant, PlayerAnswerResult answerResult, Duration playerAnswerTime) {
-        super.score(contestant, answerResult, playerAnswerTime);
-        if(answerResult.correct()){
-            contestant.incrementGameModeScore();
-        }
-    }
+/// Like AbstractCountGameMode, but also takes into account the time it took to answer the question for ranking.
+public abstract class AbstractSpeedrunGameMode extends AbstractCountGameMode{
 
     @Override
     protected final Comparator<GameContestant> comparator() {

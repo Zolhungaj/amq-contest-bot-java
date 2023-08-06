@@ -10,20 +10,20 @@ import java.util.Comparator;
 public abstract class AbstractCountGameMode extends AbstractGameMode {
 
     @Override
-    public final void score(GameContestant contestant, PlayerAnswerResult answerResult, Duration playerAnswerTime) {
-        super.score(contestant, answerResult, playerAnswerTime);
+    public final void score(GameContestant contestant, AnswerResult answerResult) {
+        super.score(contestant, answerResult);
         if(answerResult.correct()){
             contestant.incrementGameModeScore();
         }
     }
 
     @Override
-    public final ScoringTypeEnum scoringType() {
+    public ScoringTypeEnum scoringType() {
         return ScoringTypeEnum.COUNT;
     }
 
     @Override
-    protected final Comparator<GameContestant> comparator() {
+    protected Comparator<GameContestant> comparator() {
         return Comparator
                 .comparingInt(GameContestant::getGameModeScore);
     }
