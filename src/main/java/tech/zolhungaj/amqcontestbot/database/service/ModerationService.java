@@ -22,7 +22,7 @@ import java.util.Optional;
 @RequiredArgsConstructor
 @Slf4j
 public class ModerationService {
-    private static final List<AdminTypeEnum> MODERATOR_TIER = List.of(AdminTypeEnum.MODERATOR, AdminTypeEnum.ADMIN, AdminTypeEnum.OWNER);
+    private static final List<AdminTypeEnum> MODERATOR_TIER = List.of(AdminTypeEnum.MODERATOR, AdminTypeEnum.ADMIN, AdminTypeEnum.HOST, AdminTypeEnum.OWNER);
     private static final List<AdminTypeEnum> ADMIN_TIER = List.of(AdminTypeEnum.HOST, AdminTypeEnum.ADMIN, AdminTypeEnum.OWNER);
     private static final List<AdminTypeEnum> OWNER_TIER = List.of(AdminTypeEnum.OWNER);
     private final PlayerService playerService;
