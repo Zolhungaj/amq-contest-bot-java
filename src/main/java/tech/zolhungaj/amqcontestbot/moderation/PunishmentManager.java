@@ -11,6 +11,8 @@ import tech.zolhungaj.amqcontestbot.ApiManager;
 import tech.zolhungaj.amqcontestbot.chat.ChatCommands;
 import tech.zolhungaj.amqcontestbot.chat.DirectMessageController;
 import tech.zolhungaj.amqcontestbot.database.service.ModerationService;
+import tech.zolhungaj.amqcontestbot.exceptions.IncorrectArgumentCountException;
+import tech.zolhungaj.amqcontestbot.exceptions.IncorrectCommandUsageException;
 
 import java.time.Duration;
 import java.util.Collections;
@@ -41,7 +43,7 @@ public class PunishmentManager {
     private void registerBanCommands(){
         chatCommands.register((sender, arguments) -> {
             if(arguments.size() < 2){
-                throw new IllegalArgumentException();
+                throw new IncorrectArgumentCountException(2, 999);
             }
             String nickname = arguments.get(0);
             String duration = arguments.get(1);
@@ -55,7 +57,7 @@ public class PunishmentManager {
         }, ChatCommands.Grant.ADMIN, "ban");
         chatCommands.register((sender, arguments) -> {
             if(arguments.size() != 1){
-                throw new IllegalArgumentException();
+                throw new IncorrectArgumentCountException(1);
             }
             String nickname = arguments.get(0);
             unban(nickname, sender);
@@ -65,7 +67,7 @@ public class PunishmentManager {
     private void registerBanTrueCommands(){
         chatCommands.register((sender, arguments) -> {
             if(arguments.size() < 2){
-                throw new IllegalArgumentException();
+                throw new IncorrectArgumentCountException(2, 999);
             }
             String originalName = arguments.get(0);
             String duration = arguments.get(1);
@@ -79,7 +81,7 @@ public class PunishmentManager {
         }, ChatCommands.Grant.ADMIN, "banbyoriginalname", "bantrue");
         chatCommands.register((sender, arguments) -> {
             if(arguments.size() != 1){
-                throw new IllegalArgumentException();
+                throw new IncorrectArgumentCountException(1);
             }
             String originalName = arguments.get(0);
             unbanByOriginalName(originalName, sender);
@@ -89,7 +91,7 @@ public class PunishmentManager {
     private void registerKickCommands(){
         chatCommands.register((sender, arguments) -> {
             if(arguments.isEmpty()){
-                throw new IllegalArgumentException();
+                throw new IncorrectArgumentCountException(1, 999);
             }
             String nickname = arguments.get(0);
             final String reason;
@@ -102,7 +104,7 @@ public class PunishmentManager {
         }, ChatCommands.Grant.MODERATOR, "kick", "yeet");
         chatCommands.register((sender, arguments) -> {
             if(arguments.size() != 1){
-                throw new IllegalArgumentException();
+                throw new IncorrectArgumentCountException(1);
             }
             String nickname = arguments.get(0);
             unkick(nickname);
@@ -118,7 +120,7 @@ public class PunishmentManager {
         if(!moderationService.isModerator(originalName)){
             moderationService.banCommand(originalName, nameResolver.resolveOriginalName(sender), reason, parseDuration(duration));
         }else{
-            throw new IllegalArgumentException("Cannot ban a moderator");
+            throw new IncorrectCommandUsageException("ban-by-original-name.error.cannot-ban-moderator");
         }
     }
 
@@ -128,7 +130,7 @@ public class PunishmentManager {
         }
         Pattern pattern = Pattern.compile("^(\\d+)([hdmy])$");
         if(!pattern.matcher(duration).matches()){
-            throw new IllegalArgumentException("Invalid duration, please match the format \"[0-9]+[hmdy]\" or \"forever\"");
+            throw new IncorrectCommandUsageException("ban.error.invalid-duration", "[0-9]+[hmdy]", "forever");
         }
         return Duration.parse(duration);
     }
@@ -154,7 +156,7 @@ public class PunishmentManager {
             moderationService.addLog(nameResolver.resolveOriginalName(sender), "Kicked %s(%s) for %s".formatted(nickname,originalName,reason));
             directMessageController.send(nickname, "dm.kick.reason", reason);
         }else{
-            throw new IllegalArgumentException("Cannot kick a moderator");
+            throw new IncorrectCommandUsageException("kick.error.cannot-kick-moderator");
         }
     }
 
