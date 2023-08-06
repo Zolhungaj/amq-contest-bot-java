@@ -9,10 +9,7 @@ import tech.zolhungaj.amqapi.servercommands.globalstate.LoginComplete;
 import tech.zolhungaj.amqapi.servercommands.objects.PlayerAnswerResult;
 import tech.zolhungaj.amqcontestbot.ApiManager;
 import tech.zolhungaj.amqcontestbot.database.model.*;
-import tech.zolhungaj.amqcontestbot.database.service.GameService;
-import tech.zolhungaj.amqcontestbot.database.service.PlayerService;
-import tech.zolhungaj.amqcontestbot.database.service.SongService;
-import tech.zolhungaj.amqcontestbot.database.service.TeamService;
+import tech.zolhungaj.amqcontestbot.database.service.*;
 import tech.zolhungaj.amqcontestbot.gamemode.GameMode;
 import tech.zolhungaj.amqcontestbot.moderation.NameResolver;
 import tech.zolhungaj.amqcontestbot.room.lobby.LobbyStateManager;
@@ -30,6 +27,7 @@ public class GameManager {
     private final GameService gameService;
     private final PlayerService playerService;
     private final TeamService teamService;
+    private final ContestantService contestantService;
     private final LobbyStateManager lobbyStateManager;
     private final NameResolver nameResolver;
     private final Map<Integer, GameContestant> contestants = new HashMap<>();
@@ -92,7 +90,7 @@ public class GameManager {
                 String nickname = contestant.getPlayerName();
                 String playerOriginalName = nameResolver.resolveOriginalName(nickname);
                 PlayerEntity player = playerService.getPlayer(playerOriginalName).orElseThrow();
-                PlayerContestantEntity contestantEntity = player.getContestant();
+                PlayerContestantEntity contestantEntity = contestantService.getOrCreateContestant(player);
                 assert contestantEntity != null;
                 GameContestantEntity gameContestantEntity = gameService.createGameContestant(currentGame, contestantEntity);
                 databaseContestants.put(contestant.getGamePlayerId(), gameContestantEntity);
@@ -120,7 +118,7 @@ public class GameManager {
                         .map(Optional::orElseThrow)
                         .toList();
                 TeamEntity team = teamService.getOrCreateTeam(playerEntities);
-                GameContestantEntity gameTeamEntity = gameService.createGameContestant(currentGame, team.getContestant());
+                GameContestantEntity gameTeamEntity = gameService.createGameContestant(currentGame, contestantService.getOrCreateContestant(team));
                 databaseContestants.put(teamNumber, gameTeamEntity);
             });
         }
