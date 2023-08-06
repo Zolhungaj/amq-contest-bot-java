@@ -1,9 +1,7 @@
 package tech.zolhungaj.amqcontestbot.gamemode;
 
-import tech.zolhungaj.amqapi.servercommands.objects.PlayerAnswerResult;
 import tech.zolhungaj.amqcontestbot.room.game.GameContestant;
 
-import java.time.Duration;
 import java.util.*;
 
 public abstract non-sealed class AbstractGameMode implements GameMode{

@@ -1,12 +1,10 @@
 package tech.zolhungaj.amqcontestbot.gamemode;
 
-import tech.zolhungaj.amqapi.servercommands.objects.PlayerAnswerResult;
 import tech.zolhungaj.amqapi.sharedobjects.gamesettings.GameSettings;
 import tech.zolhungaj.amqcontestbot.database.enums.RulesetEnum;
 import tech.zolhungaj.amqcontestbot.database.enums.ScoringTypeEnum;
 import tech.zolhungaj.amqcontestbot.room.game.GameContestant;
 
-import java.time.Duration;
 import java.util.Collection;
 
 public sealed interface GameMode permits AbstractGameMode{

@@ -1,10 +1,8 @@
 package tech.zolhungaj.amqcontestbot.gamemode;
 
-import tech.zolhungaj.amqapi.servercommands.objects.PlayerAnswerResult;
 import tech.zolhungaj.amqcontestbot.database.enums.ScoringTypeEnum;
 import tech.zolhungaj.amqcontestbot.room.game.GameContestant;
 
-import java.time.Duration;
 import java.util.Comparator;
 
 public abstract class AbstractCountGameMode extends AbstractGameMode {
