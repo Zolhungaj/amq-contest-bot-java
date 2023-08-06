@@ -18,7 +18,11 @@ public class TeamService {
 
     public TeamEntity getOrCreateTeam(@NonNull Collection<PlayerEntity> players){
         Set<PlayerEntity> playerSet = Set.copyOf(players);
-        Optional<TeamEntity> team = repository.findByPlayersEquals(playerSet);
+
+        Optional<TeamEntity> team = repository
+                .findMatchingTeam(playerSet, playerSet.size())
+                .stream()
+                .findFirst();
         if(team.isPresent()){
             return team.get();
         }else{
