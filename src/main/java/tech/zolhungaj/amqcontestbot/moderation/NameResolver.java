@@ -8,6 +8,7 @@ import tech.zolhungaj.amqapi.clientcommands.social.GetProfile;
 import tech.zolhungaj.amqapi.servercommands.social.PlayerProfile;
 import tech.zolhungaj.amqcontestbot.ApiManager;
 import tech.zolhungaj.amqcontestbot.Util;
+import tech.zolhungaj.amqcontestbot.exceptions.NameResolutionFailedException;
 
 import java.util.HashMap;
 import java.util.Map;

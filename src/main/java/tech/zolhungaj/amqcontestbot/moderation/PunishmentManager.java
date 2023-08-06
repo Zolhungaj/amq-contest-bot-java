@@ -116,7 +116,7 @@ public class PunishmentManager {
     }
     private void banByOriginalName(String originalName, String sender, String duration, String reason){
         if(!moderationService.isModerator(originalName)){
-            moderationService.ban(originalName, nameResolver.resolveOriginalName(sender), reason, parseDuration(duration));
+            moderationService.banCommand(originalName, nameResolver.resolveOriginalName(sender), reason, parseDuration(duration));
         }else{
             throw new IllegalArgumentException("Cannot ban a moderator");
         }
@@ -139,7 +139,7 @@ public class PunishmentManager {
     }
 
     private void unbanByOriginalName(String originalName, String sender){
-        moderationService.unban(originalName, nameResolver.resolveOriginalName(sender));
+        moderationService.unbanCommand(originalName, nameResolver.resolveOriginalName(sender));
     }
 
     public void kick(String nickname, String sender, String reason){

@@ -6,7 +6,8 @@ import org.springframework.stereotype.Component;
 import tech.zolhungaj.amqapi.servercommands.gameroom.GameChatMessage;
 import tech.zolhungaj.amqapi.servercommands.gameroom.GameChatUpdate;
 import tech.zolhungaj.amqcontestbot.ApiManager;
-import tech.zolhungaj.amqcontestbot.moderation.NameResolutionFailedException;
+import tech.zolhungaj.amqcontestbot.exceptions.IncorrectArgumentCountException;
+import tech.zolhungaj.amqcontestbot.exceptions.NameResolutionFailedException;
 import tech.zolhungaj.amqcontestbot.moderation.NameResolver;
 
 import java.time.Instant;
@@ -61,7 +62,7 @@ public class UtilityCommands {
     private void registerResolve(){
         chatCommands.register((sender, arguments) -> {
             if(arguments.size() != 1){
-                throw new IllegalArgumentException();
+                throw new IncorrectArgumentCountException(1);
             }
             String nickname = arguments.get(0);
             try{

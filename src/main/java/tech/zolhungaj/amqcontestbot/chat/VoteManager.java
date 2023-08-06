@@ -5,6 +5,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
+import tech.zolhungaj.amqcontestbot.exceptions.IncorrectCommandUsageException;
 
 import java.util.HashMap;
 import java.util.List;
@@ -52,18 +53,16 @@ public class VoteManager {
         counter = 0;
     }
 
-    public void startVote(List<String> voters, Runnable runnable){
-        startVote(voters, runnable, null);
+    public void startCommandVote(List<String> voters, Runnable runnable){
+        startCommandVote(voters, runnable, null);
     }
 
-    public void startVote(List<String> voters, Runnable runnable, String initialVoter){
+    public void startCommandVote(List<String> voters, Runnable runnable, String initialVoter){
         if(currentVote != noVote){
-            chatController.send("vote.already-running");
-            return;
+            throw new IncorrectCommandUsageException("vote.already-running");
         }
         if(voters.isEmpty()){
-            chatController.send("vote.no-voters");
-            return;
+            throw new IncorrectCommandUsageException("vote.no-voters");
         }
         currentVote = new Vote(voters, runnable);
         if(initialVoter != null){
@@ -84,12 +83,10 @@ public class VoteManager {
 
         private void registerVote(String voter, boolean vote){
             if(!votes.containsKey(voter)){
-                chatController.send("vote.not-registered", voter);
-                return;
+                throw new IncorrectCommandUsageException("vote.not-registered", voter);
             }
             if(votes.get(voter).isPresent()){
-                chatController.send("vote.already-voted", voter);
-                return;
+                throw new IncorrectCommandUsageException("vote.already-voted", voter);
             }
             votes.replace(voter, Optional.of(vote));
             calculateVote();

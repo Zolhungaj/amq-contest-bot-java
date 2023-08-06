@@ -10,6 +10,8 @@ import tech.zolhungaj.amqapi.servercommands.objects.SongInfo;
 import tech.zolhungaj.amqcontestbot.ApiManager;
 import tech.zolhungaj.amqcontestbot.database.model.PlayerAvatarEntity;
 import tech.zolhungaj.amqcontestbot.database.model.PlayerEntity;
+import tech.zolhungaj.amqcontestbot.exceptions.IncorrectArgumentCountException;
+import tech.zolhungaj.amqcontestbot.exceptions.IncorrectCommandUsageException;
 
 import java.util.List;
 import java.util.Optional;
@@ -29,10 +31,13 @@ public class QuipGenerator {
     @PostConstruct
     private void init(){
         chatCommands.register((sender, arguments) -> {
-            if(arguments.size() == 1){
+            if(arguments.size() != 1){
+                throw new IncorrectArgumentCountException(1);
+            }
+            try{
                 chattiness = Double.parseDouble(arguments.get(0));
-            }else{
-                throw new IllegalArgumentException();
+            }catch (NumberFormatException e){
+                throw new IncorrectCommandUsageException("quip.setchattiness.invalid-number");
             }
         }, ChatCommands.Grant.MODERATOR, "setchattiness");
         api.on(PlayerChangedToSpectator.class, spectator -> commentOnPlayerToSpectator(spectator.spectatorDescription().playerName()));

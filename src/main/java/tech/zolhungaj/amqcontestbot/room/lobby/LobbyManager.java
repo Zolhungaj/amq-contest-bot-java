@@ -16,6 +16,8 @@ import tech.zolhungaj.amqcontestbot.chat.ChatController;
 import tech.zolhungaj.amqcontestbot.chat.VoteManager;
 import tech.zolhungaj.amqcontestbot.database.enums.RulesetEnum;
 import tech.zolhungaj.amqcontestbot.database.enums.ScoringTypeEnum;
+import tech.zolhungaj.amqcontestbot.exceptions.IncorrectArgumentCountException;
+import tech.zolhungaj.amqcontestbot.exceptions.IncorrectCommandUsageException;
 import tech.zolhungaj.amqcontestbot.gamemode.GameMode;
 import tech.zolhungaj.amqcontestbot.gamemode.GameModeFactory;
 
@@ -44,30 +46,27 @@ public class LobbyManager {
         chatCommands.register((sender, unused) -> {
             counter = WAIT_TIME;
             startIfPossible();
-        }, ChatCommands.Grant.ADMIN, "start");
+        }, ChatCommands.Grant.OWNER, "start");
         chatCommands.register((sender, unused) -> {
             counter = MAX_WAIT_TIME;
             startIfPossible();
-        }, ChatCommands.Grant.ADMIN, "startnow");
+        }, ChatCommands.Grant.OWNER, "startnow");
         chatCommands.register((sender, arguments) -> {
             if(!stateManager.isInLobby()){
-                chatController.send("gamemode.vote.not-in-lobby");
-                return;
+                throw new IncorrectCommandUsageException("gamemode.vote.not-in-lobby");
             }
-            if(arguments.size() < 2){
-                throw new IllegalArgumentException("Not enough arguments");
+            if(arguments.size() < 2 || arguments.size() > 3){
+                throw new IncorrectArgumentCountException(2, 3);
             }
             String ruleset = arguments.get(0);
             RulesetEnum rulesetEnum = RulesetEnum.fromName(ruleset);
             if(rulesetEnum == null){
-                chatController.send("gamemode.vote.invalid-ruleset", ruleset);
-                return;
+                throw new IncorrectCommandUsageException("gamemode.vote.invalid-ruleset", ruleset);
             }
             String scoringMode = arguments.get(1);
             ScoringTypeEnum scoringTypeEnum = ScoringTypeEnum.fromName(scoringMode);
             if(scoringTypeEnum == null){
-                chatController.send("gamemode.vote.invalid-scoring-mode", scoringMode);
-                return;
+                throw new IncorrectCommandUsageException("gamemode.vote.invalid-scoring-mode", scoringMode);
             }
             final GameMode gameMode;
             if(arguments.size() < 3){
@@ -77,10 +76,9 @@ public class LobbyManager {
                 gameMode = GameModeFactory.getGameMode(rulesetEnum, scoringTypeEnum, teamSize);
             }
             if(gameMode.sameGameMode(stateManager.getGameMode())){
-                chatController.send("gamemode.vote.already-current-gamemode", ruleset);
-                return;
+                throw new IncorrectCommandUsageException("gamemode.vote.already-current-gamemode", ruleset);
             }
-            voteManager.startVote(stateManager.getPlayerNames(), () -> {
+            voteManager.startCommandVote(stateManager.getPlayerNames(), () -> {
                 if(stateManager.isInLobby() && !inStartPhase){
                     stateManager.setGameMode(gameMode);
                     counter = 0;
