@@ -17,6 +17,6 @@ public sealed interface GameMode permits AbstractGameMode{
 
     default boolean sameGameMode(GameMode gameMode){
         if(gameMode == null) return false;
-        return this.ruleset() == gameMode.ruleset() && this.scoringType() == gameMode.scoringType();
+        return this.ruleset() == gameMode.ruleset() && this.scoringType() == gameMode.scoringType() && this.teamSize() == gameMode.teamSize();
     }
 }
