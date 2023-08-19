@@ -11,7 +11,12 @@ import lombok.ToString;
 @Entity
 @DiscriminatorValue("TEAM")
 public class TeamContestantEntity extends ContestantEntity{
-    @OneToOne(fetch = FetchType.LAZY)
+    @OneToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "team_id")
     private TeamEntity team;
+
+    @Override
+    public String getName() {
+        return team != null ? team.getName() : null;
+    }
 }

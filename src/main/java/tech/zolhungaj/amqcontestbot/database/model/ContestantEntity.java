@@ -12,9 +12,12 @@ import org.hibernate.annotations.Immutable;
 @Table(name = "contestant", schema = "public", catalog = "amq_contest_bot")
 @Immutable
 @DiscriminatorColumn(name = "type")
-public class ContestantEntity {
+@Inheritance(strategy = InheritanceType.SINGLE_TABLE)
+public abstract class ContestantEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Id
     @Column(name = "id")
     private int id;
+
+    public abstract String getName();
 }
