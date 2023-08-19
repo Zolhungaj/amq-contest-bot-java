@@ -11,10 +11,10 @@ import java.util.Comparator;
 
 @Data
 @Entity
-@Table(name = "leaderboard_count", schema = "public", catalog = "amq_contest_bot")
-@IdClass(LeaderboardCountView.LeaderboardId.class)
+@Table(name = "leaderboard_speedrun", schema = "public", catalog = "amq_contest_bot")
+@IdClass(LeaderboardSpeedrunView.LeaderboardId.class)
 @Immutable
-public class LeaderboardCountView implements LeaderboardView{
+public class LeaderboardSpeedrunView implements LeaderboardView{
     @Id
     @Basic
     @Column(name = "contestant_id")
@@ -24,6 +24,11 @@ public class LeaderboardCountView implements LeaderboardView{
     @Basic
     @Column(name = "game_mode_score")
     private int gameModeScore;
+
+    @Id
+    @Basic
+    @Column(name = "correct_time")
+    private long correctTime;
 
     @Id
     @Enumerated(EnumType.STRING)
@@ -54,16 +59,17 @@ public class LeaderboardCountView implements LeaderboardView{
 
     @Override
     public String getScoreRepresentation() {
-        return String.valueOf(gameModeScore);
+        return "%d@%dms".formatted(gameModeScore, correctTime);
     }
 
     @Override
     public int compareTo(LeaderboardView o) {
-        if(o instanceof LeaderboardCountView lbc){
+        if(o instanceof LeaderboardSpeedrunView lbv){
             return Comparator
-                    .comparingInt(LeaderboardCountView::getGameModeScore)
-                    .thenComparing(Comparator.comparing(LeaderboardCountView::getEarliestAchieved).reversed())
-                    .compare(this, lbc);
+                    .comparingLong(LeaderboardSpeedrunView::getGameModeScore)
+                    .thenComparing(Comparator.comparingLong(LeaderboardSpeedrunView::getCorrectTime).reversed())
+                    .thenComparing(Comparator.comparing(LeaderboardSpeedrunView::getEarliestAchieved).reversed())
+                    .compare(this, lbv);
         }
         return 0;
     }
@@ -72,6 +78,7 @@ public class LeaderboardCountView implements LeaderboardView{
     public static class LeaderboardId implements Serializable {
         private int contestantId;
         private int gameModeScore;
+        private long correctTime;
         private RulesetEnum ruleset;
         private int teamSize;
     }
