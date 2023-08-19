@@ -44,7 +44,8 @@ public class Leaderboard {
         List<LeaderboardCountView> leaderboard = leaderboardService.getCountLeaderboard(rulesetEnum, teamSize, count);
         leaderboard.forEach(countView -> {
             ContestantEntity contestantEntity = countView.getContestant();
-            chat.send("leaderboard.count.entry", contestantEntity.getName(), countView.getGameModeScore(), countView.getTimesAchieved(), countView.getEarliestAchieved());
+            String timesAchieved = countView.getTimesAchieved() == 1 ? "" : "x" + countView.getTimesAchieved();
+            chat.send("leaderboard.count.entry", contestantEntity.getName(), countView.getGameModeScore(), timesAchieved, countView.getEarliestAchieved());
         });
     }
 }
