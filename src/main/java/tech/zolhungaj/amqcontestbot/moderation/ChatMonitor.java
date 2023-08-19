@@ -50,11 +50,12 @@ public class ChatMonitor {
     }
 
     private void saveMessage(GameChatMessage gameChatMessage){
-        String originalName = nameResolver.resolveOriginalName(gameChatMessage.sender());
-        PlayerEntity player = playerService.getOrCreatePlayer(originalName);
-        String content = gameChatMessage.message();
-        int messageId = gameChatMessage.messageId();
-        messageService.save(player, content, roomId, messageId);
+        nameResolver.resolveOriginalNameAsync(gameChatMessage.sender()).thenAccept(originalName -> {
+            PlayerEntity player = playerService.getOrCreatePlayer(originalName);
+            String content = gameChatMessage.message();
+            int messageId = gameChatMessage.messageId();
+            messageService.save(player, content, roomId, messageId);
+        });
     }
 
 

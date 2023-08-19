@@ -20,9 +20,6 @@ public class MessageEntity {
     @Column(name = "room_id")
     private int roomId;
     @Basic
-    @Column(name = "room_uuid")
-    private String roomUuid;
-    @Basic
     @Column(name = "room_message_id")
     private int roomMessageId;
 }
