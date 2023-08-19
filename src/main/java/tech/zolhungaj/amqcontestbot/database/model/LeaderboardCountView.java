@@ -2,6 +2,7 @@ package tech.zolhungaj.amqcontestbot.database.model;
 
 import jakarta.persistence.*;
 import lombok.Data;
+import lombok.NonNull;
 import org.hibernate.annotations.Immutable;
 import tech.zolhungaj.amqcontestbot.database.enums.RulesetEnum;
 
@@ -58,7 +59,7 @@ public class LeaderboardCountView implements LeaderboardView{
     }
 
     @Override
-    public int compareTo(LeaderboardView o) {
+    public int compareTo(@NonNull LeaderboardView o) {
         if(o instanceof LeaderboardCountView lbc){
             return Comparator
                     .comparingInt(LeaderboardCountView::getGameModeScore)
