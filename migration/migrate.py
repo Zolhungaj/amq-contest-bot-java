@@ -1,4 +1,5 @@
 import psycopg2
+import psycopg2.extensions
 import sqlite3
 import argparse
 
@@ -94,9 +95,9 @@ def setup_connections(
         postgres_port: int,
         postgres_database_name: str,
         postgres_username: str,
-        postgres_password: str) -> tuple[sqlite3.Connection, psycopg2.connection]:
+        postgres_password: str) -> tuple[sqlite3.Connection, psycopg2.extensions.connection]:
     sqlite3_connection: sqlite3.Connection = sqlite3.connect(sqlite3_database_filename)
-    postgres_connection: psycopg2.connection = psycopg2.connect(
+    postgres_connection: psycopg2.extensions.connection = psycopg2.connect(
         f"dbname={postgres_database_name} \
         user={postgres_username} \
         password={postgres_password} \
@@ -105,7 +106,7 @@ def setup_connections(
     return sqlite3_connection, postgres_connection
 
 
-def setup_players(sqlite3_connection: sqlite3.Connection, postgres_connection: psycopg2.connection) -> PlayerMap:
+def setup_players(sqlite3_connection: sqlite3.Connection, postgres_connection: psycopg2.extensions.connection) -> PlayerMap:
     player_map: PlayerMap = PlayerMap()
     result = sqlite3_connection.execute("SELECT player_id, truename from player").fetchall()
     for (player_id, truename) in result:
@@ -115,11 +116,11 @@ def setup_players(sqlite3_connection: sqlite3.Connection, postgres_connection: p
     result2 = postgres_cursor.fetchall()
     for (player_id, original_name) in result2:
         player_map.add_new_player(NewPlayer(player_id, original_name))
-    # insert_unmapped_players(player_map, postgres_connection)
+    insert_unmapped_players(player_map, postgres_connection)
     return player_map
 
 
-def insert_unmapped_players(player_map: PlayerMap, postgres_connection: psycopg2.connection):
+def insert_unmapped_players(player_map: PlayerMap, postgres_connection: psycopg2.extensions.connection):
     unmapped_players = player_map.get_unmapped_old_players()
     postgres_cursor = postgres_connection.cursor()
     for unmapped_player in unmapped_players:
