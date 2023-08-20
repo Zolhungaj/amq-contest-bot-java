@@ -2,6 +2,7 @@ import psycopg2
 import psycopg2.extensions
 import sqlite3
 import argparse
+from psycopg2.extras import execute_values
 
 
 class OldPlayer:
@@ -122,9 +123,11 @@ def setup_players(sqlite3_connection: sqlite3.Connection, postgres_connection: p
 
 def insert_unmapped_players(player_map: PlayerMap, postgres_connection: psycopg2.extensions.connection):
     unmapped_players = player_map.get_unmapped_old_players()
+    unmapped_names = [unmapped_player.truename for unmapped_player in unmapped_players]
     postgres_cursor = postgres_connection.cursor()
-    for unmapped_player in unmapped_players:
-        postgres_cursor.execute("INSERT INTO player (original_name) VALUES (%s)", (unmapped_player.truename,))
+    execute_values(postgres_cursor,
+                   "INSERT INTO player (original_name) VALUES %s",
+                   [(name,) for name in unmapped_names])
     postgres_connection.commit()
     postgres_cursor.execute("SELECT id, original_name from player")
     result = postgres_cursor.fetchall()
