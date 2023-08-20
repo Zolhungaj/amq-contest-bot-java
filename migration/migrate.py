@@ -123,6 +123,8 @@ def setup_players(sqlite3_connection: sqlite3.Connection, postgres_connection: p
 
 def insert_unmapped_players(player_map: PlayerMap, postgres_connection: psycopg2.extensions.connection):
     unmapped_players = player_map.get_unmapped_old_players()
+    if len(unmapped_players) == 0:
+        return
     unmapped_names = [unmapped_player.truename for unmapped_player in unmapped_players]
     postgres_cursor = postgres_connection.cursor()
     execute_values(postgres_cursor,
