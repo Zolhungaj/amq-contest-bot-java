@@ -16,8 +16,8 @@ class OldPlayer:
 
 
 class NewPlayer:
-    def __init__(self, id: int, original_name: str):
-        self.id = id
+    def __init__(self, player_id: int, original_name: str):
+        self.id = player_id
         self.original_name = original_name
 
     def __str__(self):
@@ -81,6 +81,11 @@ def main(sqlite3_database_filename: str,
                                                                   postgres_password)
     player_map: PlayerMap = setup_players(sqlite3_connection, postgres_connection)
     print(player_map.get_list())
+    # todo: map bannned to ban
+    # todo: map player to contestant
+    # todo: map game to game
+    # todo: map gameplayer to game_contestant
+    # todo:
 
 
 def setup_connections(
@@ -89,9 +94,9 @@ def setup_connections(
         postgres_port: int,
         postgres_database_name: str,
         postgres_username: str,
-        postgres_password: str) -> tuple[sqlite3.Connection, any]:
-    sqlite3_connection: Connection = sqlite3.connect(sqlite3_database_filename)
-    postgres_connection: any = psycopg2.connect(
+        postgres_password: str) -> tuple[sqlite3.Connection, psycopg2.connection]:
+    sqlite3_connection: sqlite3.Connection = sqlite3.connect(sqlite3_database_filename)
+    postgres_connection: psycopg2.connection = psycopg2.connect(
         f"dbname={postgres_database_name} \
         user={postgres_username} \
         password={postgres_password} \
@@ -100,7 +105,7 @@ def setup_connections(
     return sqlite3_connection, postgres_connection
 
 
-def setup_players(sqlite3_connection: sqlite3.Connection, postgres_connection: any) -> PlayerMap:
+def setup_players(sqlite3_connection: sqlite3.Connection, postgres_connection: psycopg2.connection) -> PlayerMap:
     player_map: PlayerMap = PlayerMap()
     result = sqlite3_connection.execute("SELECT player_id, truename from player").fetchall()
     for (player_id, truename) in result:
@@ -108,13 +113,13 @@ def setup_players(sqlite3_connection: sqlite3.Connection, postgres_connection: a
     postgres_cursor = postgres_connection.cursor()
     postgres_cursor.execute("SELECT id, original_name from player")
     result2 = postgres_cursor.fetchall()
-    for (id, original_name) in result2:
-        player_map.add_new_player(NewPlayer(id, original_name))
+    for (player_id, original_name) in result2:
+        player_map.add_new_player(NewPlayer(player_id, original_name))
     # insert_unmapped_players(player_map, postgres_connection)
     return player_map
 
 
-def insert_unmapped_players(player_map: PlayerMap, postgres_connection: any):
+def insert_unmapped_players(player_map: PlayerMap, postgres_connection: psycopg2.connection):
     unmapped_players = player_map.get_unmapped_old_players()
     postgres_cursor = postgres_connection.cursor()
     for unmapped_player in unmapped_players:
@@ -122,8 +127,8 @@ def insert_unmapped_players(player_map: PlayerMap, postgres_connection: any):
     postgres_connection.commit()
     postgres_cursor.execute("SELECT id, original_name from player")
     result = postgres_cursor.fetchall()
-    for (id, original_name) in result:
-        player_map.add_new_player(NewPlayer(id, original_name))
+    for (player_id, original_name) in result:
+        player_map.add_new_player(NewPlayer(player_id, original_name))
     assert len(player_map.get_unmapped_old_players()) == 0
 
 
