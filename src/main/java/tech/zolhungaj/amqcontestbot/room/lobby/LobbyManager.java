@@ -120,6 +120,10 @@ public class LobbyManager {
     }
 
     private boolean startIfPossible(){
+        if(stateManager.noFullFileServersOnline()){
+            chatController.send("lobby.starting.failed.no-full-file-servers");
+            return false;
+        }
         Set<LobbyPlayer> notReady = stateManager.notReadyPlayers();
         if(counter >= WAIT_TIME && notReady.isEmpty()){
             this.start();
