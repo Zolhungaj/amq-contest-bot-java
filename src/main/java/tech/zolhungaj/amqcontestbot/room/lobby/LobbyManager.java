@@ -11,9 +11,10 @@ import tech.zolhungaj.amqapi.clientcommands.lobby.StartGame;
 import tech.zolhungaj.amqapi.servercommands.gameroom.game.QuizOver;
 import tech.zolhungaj.amqapi.servercommands.gameroom.game.QuizReady;
 import tech.zolhungaj.amqcontestbot.ApiManager;
-import tech.zolhungaj.amqcontestbot.chat.ChatCommands;
+import tech.zolhungaj.amqcontestbot.commands.ChatCommands;
 import tech.zolhungaj.amqcontestbot.chat.ChatController;
-import tech.zolhungaj.amqcontestbot.chat.VoteManager;
+import tech.zolhungaj.amqcontestbot.commands.Grant;
+import tech.zolhungaj.amqcontestbot.commands.VoteManager;
 import tech.zolhungaj.amqcontestbot.database.enums.RulesetEnum;
 import tech.zolhungaj.amqcontestbot.database.enums.ScoringTypeEnum;
 import tech.zolhungaj.amqcontestbot.exceptions.IncorrectArgumentCountException;
@@ -46,11 +47,11 @@ public class LobbyManager {
         chatCommands.register((sender, unused) -> {
             counter = WAIT_TIME;
             startIfPossible();
-        }, ChatCommands.Grant.OWNER, "start");
+        }, Grant.OWNER, "start");
         chatCommands.register((sender, unused) -> {
             counter = MAX_WAIT_TIME;
             startIfPossible();
-        }, ChatCommands.Grant.OWNER, "startnow");
+        }, Grant.OWNER, "startnow");
         chatCommands.register((sender, arguments) -> {
             if(!stateManager.isInLobby()){
                 throw new IncorrectCommandUsageException("gamemode.vote.not-in-lobby");

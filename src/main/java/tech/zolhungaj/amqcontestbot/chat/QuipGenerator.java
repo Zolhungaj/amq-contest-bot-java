@@ -8,6 +8,8 @@ import tech.zolhungaj.amqapi.servercommands.gameroom.lobby.PlayerChangedToSpecta
 import tech.zolhungaj.amqapi.servercommands.objects.PlayerAvatar;
 import tech.zolhungaj.amqapi.servercommands.objects.SongInfo;
 import tech.zolhungaj.amqcontestbot.ApiManager;
+import tech.zolhungaj.amqcontestbot.commands.ChatCommands;
+import tech.zolhungaj.amqcontestbot.commands.Grant;
 import tech.zolhungaj.amqcontestbot.database.model.PlayerAvatarEntity;
 import tech.zolhungaj.amqcontestbot.database.model.PlayerEntity;
 import tech.zolhungaj.amqcontestbot.exceptions.IncorrectArgumentCountException;
@@ -39,7 +41,7 @@ public class QuipGenerator {
             }catch (NumberFormatException e){
                 throw new IncorrectCommandUsageException("quip.setchattiness.invalid-number");
             }
-        }, ChatCommands.Grant.MODERATOR, "setchattiness");
+        }, Grant.MODERATOR, "setchattiness");
         api.on(PlayerChangedToSpectator.class, spectator -> commentOnPlayerToSpectator(spectator.spectatorDescription().playerName()));
         api.on(AnswerResults.class, this::quipAboutAnime);
     }

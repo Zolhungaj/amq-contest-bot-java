@@ -7,6 +7,7 @@ import tech.zolhungaj.amqapi.clientcommands.social.RespondToFriendRequest;
 import tech.zolhungaj.amqapi.clientcommands.social.SendFriendRequest;
 import tech.zolhungaj.amqapi.servercommands.social.FriendRequestReceived;
 import tech.zolhungaj.amqcontestbot.ApiManager;
+import tech.zolhungaj.amqcontestbot.commands.ChatCommands;
 
 @Component
 @RequiredArgsConstructor

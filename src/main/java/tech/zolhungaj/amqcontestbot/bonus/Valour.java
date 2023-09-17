@@ -3,7 +3,7 @@ package tech.zolhungaj.amqcontestbot.bonus;
 import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
-import tech.zolhungaj.amqcontestbot.chat.ChatCommands;
+import tech.zolhungaj.amqcontestbot.commands.ChatCommands;
 import tech.zolhungaj.amqcontestbot.chat.ChatController;
 import tech.zolhungaj.amqcontestbot.database.service.PlayerService;
 import tech.zolhungaj.amqcontestbot.exceptions.IncorrectArgumentCountException;

@@ -6,7 +6,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import tech.zolhungaj.amqapi.servercommands.globalstate.LoginComplete;
 import tech.zolhungaj.amqcontestbot.ApiManager;
-import tech.zolhungaj.amqcontestbot.chat.ChatCommands;
+import tech.zolhungaj.amqcontestbot.commands.ChatCommands;
+import tech.zolhungaj.amqcontestbot.commands.Grant;
 import tech.zolhungaj.amqcontestbot.database.service.ModerationService;
 import tech.zolhungaj.amqcontestbot.exceptions.IncorrectArgumentCountException;
 import tech.zolhungaj.amqcontestbot.exceptions.IncorrectCommandUsageException;
@@ -39,13 +40,13 @@ public class AdministratorManager {
                 throw new IncorrectArgumentCountException(1);
             }
             addAdmin(sender, arguments.get(0));
-        }, ChatCommands.Grant.ADMIN, "addadministrator", "addadmin");
+        }, Grant.ADMIN, "addadministrator", "addadmin");
         chatCommands.register((sender, arguments) -> {
             if(arguments.size() != 1){
                 throw new IncorrectArgumentCountException(1);
             }
             removeAdmin(sender, arguments.get(0));
-        }, ChatCommands.Grant.ADMIN, "removeadministrator","removeadmin");
+        }, Grant.ADMIN, "removeadministrator","removeadmin");
     }
 
     private void registerModerator(){
@@ -54,13 +55,13 @@ public class AdministratorManager {
                 throw new IncorrectArgumentCountException(1);
             }
             addModerator(sender, arguments.get(0));
-        }, ChatCommands.Grant.MODERATOR, "addmoderator", "addmod");
+        }, Grant.MODERATOR, "addmoderator", "addmod");
         chatCommands.register((sender, arguments) -> {
             if(arguments.size() != 1){
                 throw new IncorrectArgumentCountException(1);
             }
             removeModerator(sender, arguments.get(0));
-        }, ChatCommands.Grant.MODERATOR, "removemoderator", "removemod");
+        }, Grant.MODERATOR, "removemoderator", "removemod");
     }
 
     private void addAdmin(String sender, String receiver){

@@ -1,4 +1,4 @@
-package tech.zolhungaj.amqcontestbot.chat;
+package tech.zolhungaj.amqcontestbot.commands;
 
 import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
@@ -6,6 +6,7 @@ import org.springframework.stereotype.Component;
 import tech.zolhungaj.amqapi.servercommands.gameroom.GameChatMessage;
 import tech.zolhungaj.amqapi.servercommands.gameroom.GameChatUpdate;
 import tech.zolhungaj.amqcontestbot.ApiManager;
+import tech.zolhungaj.amqcontestbot.chat.ChatController;
 import tech.zolhungaj.amqcontestbot.exceptions.IncorrectArgumentCountException;
 import tech.zolhungaj.amqcontestbot.exceptions.NameResolutionFailedException;
 import tech.zolhungaj.amqcontestbot.moderation.NameResolver;
@@ -54,7 +55,7 @@ public class UtilityCommands {
     private void registerSay(){
         chatCommands.register(
                 (sender, arguments) -> chatController.sendRaw(String.join(" ", arguments)),
-                ChatCommands.Grant.ADMIN,
+                Grant.ADMIN,
                 "say"
         );
     }
@@ -71,6 +72,6 @@ public class UtilityCommands {
             }catch(NameResolutionFailedException e){
                 chatController.send("name-resolver.not-found", nickname);
             }
-        }, ChatCommands.Grant.NONE, "resolve");
+        }, Grant.NONE, "resolve");
     }
 }

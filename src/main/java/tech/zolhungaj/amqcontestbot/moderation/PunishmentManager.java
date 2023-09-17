@@ -8,8 +8,9 @@ import tech.zolhungaj.amqapi.clientcommands.lobby.Kick;
 import tech.zolhungaj.amqapi.servercommands.gameroom.lobby.NewPlayer;
 import tech.zolhungaj.amqapi.servercommands.gameroom.SpectatorJoined;
 import tech.zolhungaj.amqcontestbot.ApiManager;
-import tech.zolhungaj.amqcontestbot.chat.ChatCommands;
+import tech.zolhungaj.amqcontestbot.commands.ChatCommands;
 import tech.zolhungaj.amqcontestbot.chat.DirectMessageController;
+import tech.zolhungaj.amqcontestbot.commands.Grant;
 import tech.zolhungaj.amqcontestbot.database.service.ModerationService;
 import tech.zolhungaj.amqcontestbot.exceptions.IncorrectArgumentCountException;
 import tech.zolhungaj.amqcontestbot.exceptions.IncorrectCommandUsageException;
@@ -54,14 +55,14 @@ public class PunishmentManager {
                 reason = "No reason given";
             }
             ban(nickname, sender, duration, reason);
-        }, ChatCommands.Grant.ADMIN, "ban");
+        }, Grant.ADMIN, "ban");
         chatCommands.register((sender, arguments) -> {
             if(arguments.size() != 1){
                 throw new IncorrectArgumentCountException(1);
             }
             String nickname = arguments.get(0);
             unban(nickname, sender);
-        }, ChatCommands.Grant.ADMIN, "unban");
+        }, Grant.ADMIN, "unban");
     }
 
     private void registerBanTrueCommands(){
@@ -78,14 +79,14 @@ public class PunishmentManager {
                 reason = "No reason given";
             }
             banByOriginalName(originalName, sender, duration, reason);
-        }, ChatCommands.Grant.ADMIN, "banbyoriginalname", "bantrue");
+        }, Grant.ADMIN, "banbyoriginalname", "bantrue");
         chatCommands.register((sender, arguments) -> {
             if(arguments.size() != 1){
                 throw new IncorrectArgumentCountException(1);
             }
             String originalName = arguments.get(0);
             unbanByOriginalName(originalName, sender);
-        }, ChatCommands.Grant.ADMIN, "unbanbyoriginalname", "unbantrue");
+        }, Grant.ADMIN, "unbanbyoriginalname", "unbantrue");
     }
 
     private void registerKickCommands(){
@@ -101,14 +102,14 @@ public class PunishmentManager {
                 reason = "No reason given";
             }
             kick(nickname, sender, reason);
-        }, ChatCommands.Grant.MODERATOR, "kick", "yeet");
+        }, Grant.MODERATOR, "kick", "yeet");
         chatCommands.register((sender, arguments) -> {
             if(arguments.size() != 1){
                 throw new IncorrectArgumentCountException(1);
             }
             String nickname = arguments.get(0);
             unkick(nickname);
-        }, ChatCommands.Grant.MODERATOR, "unkick", "unyeet");
+        }, Grant.MODERATOR, "unkick", "unyeet");
     }
 
     private void ban(String nickname, String sender, String duration, String reason){

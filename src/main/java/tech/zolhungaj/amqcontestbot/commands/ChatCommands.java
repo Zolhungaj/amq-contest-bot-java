@@ -1,4 +1,4 @@
-package tech.zolhungaj.amqcontestbot.chat;
+package tech.zolhungaj.amqcontestbot.commands;
 
 import jakarta.annotation.PostConstruct;
 import lombok.NonNull;
@@ -8,6 +8,7 @@ import org.springframework.stereotype.Component;
 import tech.zolhungaj.amqapi.servercommands.gameroom.GameChatMessage;
 import tech.zolhungaj.amqapi.servercommands.gameroom.GameChatUpdate;
 import tech.zolhungaj.amqcontestbot.ApiManager;
+import tech.zolhungaj.amqcontestbot.chat.ChatController;
 import tech.zolhungaj.amqcontestbot.database.service.ModerationService;
 import tech.zolhungaj.amqcontestbot.exceptions.CommandAccessDeniedException;
 import tech.zolhungaj.amqcontestbot.exceptions.IncorrectCommandUsageException;
@@ -86,7 +87,7 @@ public class ChatCommands {
         String commandName = arguments.remove(0);
         Command command = registeredCommands.get(commandName);
         if(command != null){
-            executor.execute(new CommandHandler(command, sender, arguments));
+            executor.execute(new ChatCommandHandler(command, sender, arguments));
         }else{
             chatController.send(UNKNOWN_COMMAND_I18N_NAME);
         }
@@ -121,7 +122,7 @@ public class ChatCommands {
         String originalName = nameResolver.resolveOriginalName(sender);
         Set<Command> commands = new HashSet<>(registeredCommands.values());
         Map<Grant, List<String>> commandsByGrant = new EnumMap<>(Grant.class);
-        commands.forEach(command -> commandsByGrant.computeIfAbsent(command.grant, grant -> new ArrayList<>()).add(command.commandName));
+        commands.forEach(command -> commandsByGrant.computeIfAbsent(command.grant(), grant -> new ArrayList<>()).add(command.commandName()));
         commandsByGrant.replaceAll((grant, commandNames) -> commandNames.stream().sorted(String::compareToIgnoreCase).toList());
         if(commandsByGrant.containsKey(Grant.NONE)){
             chatController.send("chat-commands.help.common", String.join(", ", commandsByGrant.get(Grant.NONE)));
@@ -139,8 +140,8 @@ public class ChatCommands {
     private void help(String commandName){
         Command command = registeredCommands.get(commandName);
         if(command != null){
-            chatController.send(command.i18nCanonicalNameDescription(), command.commandName, command.aliasesToString());
-            chatController.send(command.i18nCanonicalNameUsage(), command.commandName);
+            chatController.send(command.i18nCanonicalNameDescription(), command.commandName(), command.aliasesToString());
+            chatController.send(command.i18nCanonicalNameUsage(), command.commandName());
         }else{
             chatController.send(UNKNOWN_COMMAND_I18N_NAME);
         }
@@ -160,14 +161,14 @@ public class ChatCommands {
     private void listAliases(String commandName){
         Command command = registeredCommands.get(commandName);
         if(command != null){
-            chatController.send("chat-commands.alias", command.commandName, command.aliasesToString());
+            chatController.send("chat-commands.alias", command.commandName(), command.aliasesToString());
         }else{
             chatController.send(UNKNOWN_COMMAND_I18N_NAME);
         }
     }
 
     @RequiredArgsConstructor
-    private class CommandHandler implements Runnable{
+    private class ChatCommandHandler implements Runnable{
 
         private final Command command;
         private final String sender;
@@ -196,34 +197,9 @@ public class ChatCommands {
             if(hasPermission.test(originalName)){
                 command.handler().accept(sender, arguments);
             }else{
-                throw new CommandAccessDeniedException(sender, command.commandName, command.grant());
+                throw new CommandAccessDeniedException(sender, command.commandName(), command.grant());
             }
         }
     }
 
-    private record Command(
-            @NonNull String commandName,
-            @NonNull Grant grant,
-            @NonNull BiConsumer<String, List<String>> handler,
-            @NonNull List<String> aliases){
-        public String aliasesToString(){
-            return String.join(", ", aliases);
-        }
-        public String i18nCanonicalName(){
-            return "command.".concat(commandName);
-        }
-        public String i18nCanonicalNameDescription(){
-            return i18nCanonicalName().concat(".description");
-        }
-        public String i18nCanonicalNameUsage(){
-            return i18nCanonicalName().concat(".usage");
-        }
-    }
-
-    public enum Grant{
-        NONE,
-        MODERATOR,
-        ADMIN,
-        OWNER
-    }
 }

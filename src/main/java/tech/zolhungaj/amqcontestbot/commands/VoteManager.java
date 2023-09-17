@@ -1,10 +1,11 @@
-package tech.zolhungaj.amqcontestbot.chat;
+package tech.zolhungaj.amqcontestbot.commands;
 
 import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
+import tech.zolhungaj.amqcontestbot.chat.ChatController;
 import tech.zolhungaj.amqcontestbot.exceptions.IncorrectCommandUsageException;
 
 import java.util.HashMap;
@@ -40,7 +41,7 @@ public class VoteManager {
     private void init(){
         chatCommands.register((sender, unused) -> currentVote.registerVote(sender, true), "yes", "y");
         chatCommands.register((sender, unused) -> currentVote.registerVote(sender, false), "no", "n");
-        chatCommands.register((sender, unused) -> adminReset(), ChatCommands.Grant.ADMIN, "resetvote");
+        chatCommands.register((sender, unused) -> adminReset(), Grant.ADMIN, "resetvote");
     }
 
     private void adminReset(){
