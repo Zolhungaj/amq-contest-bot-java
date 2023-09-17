@@ -10,15 +10,9 @@ import tech.zolhungaj.amqapi.servercommands.gameroom.GameChatUpdate;
 import tech.zolhungaj.amqcontestbot.ApiManager;
 import tech.zolhungaj.amqcontestbot.chat.ChatController;
 import tech.zolhungaj.amqcontestbot.database.service.ModerationService;
-import tech.zolhungaj.amqcontestbot.exceptions.CommandAccessDeniedException;
-import tech.zolhungaj.amqcontestbot.exceptions.IncorrectCommandUsageException;
 import tech.zolhungaj.amqcontestbot.moderation.NameResolver;
 
 import java.util.*;
-import java.util.concurrent.Executor;
-import java.util.concurrent.Executors;
-import java.util.function.BiConsumer;
-import java.util.function.Predicate;
 
 /**Owner of all chat commands.
  * Chat commands are guaranteed to be executed in series, and should use blocking calls.

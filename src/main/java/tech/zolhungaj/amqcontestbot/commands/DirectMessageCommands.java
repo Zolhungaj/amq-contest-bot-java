@@ -5,15 +5,15 @@ import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
-import tech.zolhungaj.amqapi.servercommands.gameroom.GameChatMessage;
-import tech.zolhungaj.amqapi.servercommands.gameroom.GameChatUpdate;
 import tech.zolhungaj.amqapi.servercommands.social.DirectMessage;
 import tech.zolhungaj.amqcontestbot.ApiManager;
 import tech.zolhungaj.amqcontestbot.chat.DirectMessageController;
 import tech.zolhungaj.amqcontestbot.database.service.ModerationService;
 import tech.zolhungaj.amqcontestbot.moderation.NameResolver;
 
-import java.util.*;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
 /**Owner of all chat commands.
  * Chat commands are guaranteed to be executed in series, and should use blocking calls.
