@@ -167,38 +167,20 @@ public class ChatCommands {
         }
     }
 
-    @RequiredArgsConstructor
-    private class ChatCommandHandler implements Runnable{
 
-        private final Command command;
-        private final String sender;
-        private final List<String> arguments;
-        @Override
-        public void run() {
-            try{
-                execute();
-            }catch(IllegalArgumentException e){
-                if(e instanceof IncorrectCommandUsageException e2){
-                    chatController.send(e2.getI18nIdentifier(), e2.getArguments().toArray());
-                }else{
-                    chatController.send(command.i18nCanonicalNameUsage());
-                }
-            }
+    private class ChatCommandHandler extends AbstractCommandHandler{
+        public ChatCommandHandler(Command command, String sender, List<String> arguments) {
+            super(command, sender, arguments, moderationService, nameResolver);
         }
 
-        private void execute(){
-            Predicate<String> hasPermission = switch (command.grant()){
-                case NONE -> s -> true;
-                case MODERATOR -> moderationService::isModerator;
-                case ADMIN -> moderationService::isAdmin;
-                case OWNER -> moderationService::isOwner;
-            };
-            String originalName = nameResolver.resolveOriginalName(sender);
-            if(hasPermission.test(originalName)){
-                command.handler().accept(sender, arguments);
-            }else{
-                throw new CommandAccessDeniedException(sender, command.commandName(), command.grant());
-            }
+        @Override
+        protected void handleIncorrectCommandUsage(String i18nIdentifier, List<String> arguments) {
+            chatController.send(i18nIdentifier, arguments.toArray());
+        }
+
+        @Override
+        protected void handleIllegalArgumentException(String i18nCanonicalNameUsage) {
+            chatController.send(i18nCanonicalNameUsage);
         }
     }
 
