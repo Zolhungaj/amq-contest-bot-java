@@ -5,7 +5,7 @@ import lombok.NonNull;
 import java.util.List;
 import java.util.function.BiConsumer;
 
-record Command(
+public record Command(
         @NonNull String commandName,
         @NonNull Grant grant,
         @NonNull BiConsumer<String, List<String>> handler,
