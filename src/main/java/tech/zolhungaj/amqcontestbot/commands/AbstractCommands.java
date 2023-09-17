@@ -19,6 +19,41 @@ public abstract class AbstractCommands {
 
     private final Executor executor = Executors.newSingleThreadExecutor();
 
+    protected void registerChatCommands(){
+        registerHelp();
+        registerAlias();
+    }
+
+    private void registerHelp(){
+        register((sender, arguments) -> {
+            if(arguments.isEmpty()){
+                printCommandList(sender);
+            } else if(arguments.size() == 1) {
+                String argument = arguments.get(0);
+                help(argument, sender);
+            } else{
+                throw new IllegalArgumentException();
+            }
+        }, "help", "h");
+    }
+
+    protected abstract void printCommandList(String sender);
+
+    protected abstract void help(String argument, String sender);
+
+    private void registerAlias(){
+        register((sender, arguments) -> {
+            if(arguments.size() == 1){
+                String argument = arguments.get(0);
+                listAliases(argument, sender);
+            }else{
+                throw new IllegalArgumentException();
+            }
+        }, "alias");
+    }
+
+    protected abstract void listAliases(String argument, String sender);
+
     public final void register(BiConsumer<String, List<String>> handler, String primaryCommandName, String... aliases){
         this.register(handler, primaryCommandName, List.of(aliases));
     }

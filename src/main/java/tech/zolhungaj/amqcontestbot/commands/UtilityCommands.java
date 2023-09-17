@@ -7,6 +7,7 @@ import tech.zolhungaj.amqapi.servercommands.gameroom.GameChatMessage;
 import tech.zolhungaj.amqapi.servercommands.gameroom.GameChatUpdate;
 import tech.zolhungaj.amqcontestbot.ApiManager;
 import tech.zolhungaj.amqcontestbot.chat.ChatController;
+import tech.zolhungaj.amqcontestbot.chat.DirectMessageController;
 import tech.zolhungaj.amqcontestbot.exceptions.IncorrectArgumentCountException;
 import tech.zolhungaj.amqcontestbot.exceptions.NameResolutionFailedException;
 import tech.zolhungaj.amqcontestbot.moderation.NameResolver;
@@ -22,6 +23,8 @@ public class UtilityCommands {
     private final NameResolver nameResolver;
     private final ChatCommands chatCommands;
     private final ChatController chatController;
+    private final DirectMessageCommands dmCommands;
+    private final DirectMessageController dmController;
 
     @PostConstruct
     private void init(){
@@ -55,8 +58,18 @@ public class UtilityCommands {
     private void registerSay(){
         chatCommands.register(
                 (sender, arguments) -> chatController.sendRaw(String.join(" ", arguments)),
-                Grant.ADMIN,
+                Grant.OWNER,
                 "say"
+        );
+        dmCommands.register(
+                (sender, arguments) -> chatController.sendRaw(String.join(" ", arguments)),
+                Grant.OWNER,
+                "say"
+        );
+        dmCommands.register(
+                (sender, arguments) -> dmController.sendRaw(sender, String.join(" ", arguments)),
+                Grant.OWNER,
+                "reply"
         );
     }
 

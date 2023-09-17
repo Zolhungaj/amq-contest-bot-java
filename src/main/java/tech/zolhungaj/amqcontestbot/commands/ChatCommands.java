@@ -38,7 +38,7 @@ public class ChatCommands extends AbstractCommands{
     private void init(){
         api.on(GameChatMessage.class, this::handleMessage);
         api.on(GameChatUpdate.class, gameChatUpdate -> gameChatUpdate.messages().forEach(this::handleMessage));
-        registerChatCommands();
+        super.registerChatCommands();
     }
 
 
@@ -51,25 +51,8 @@ public class ChatCommands extends AbstractCommands{
         }
     }
 
-    private void registerChatCommands(){
-        registerHelp();
-        registerAlias();
-    }
-
-    private void registerHelp(){
-        register((sender, arguments) -> {
-            if(arguments.isEmpty()){
-                printCommandList(sender);
-            } else if(arguments.size() == 1) {
-                String argument = arguments.get(0);
-                help(argument, sender);
-            } else{
-                throw new IllegalArgumentException();
-            }
-        }, "help", "h");
-    }
-
-    private void printCommandList(String sender){
+    @Override
+    protected void printCommandList(String sender){
         String originalName = nameResolver.resolveOriginalName(sender);
         Set<Command> commands = new HashSet<>(registeredCommands.values());
         Map<Grant, List<String>> commandsByGrant = new EnumMap<>(Grant.class);
@@ -88,7 +71,9 @@ public class ChatCommands extends AbstractCommands{
             chatController.send("chat-commands.help.owner", String.join(", ", commandsByGrant.get(Grant.OWNER)));
         }
     }
-    private void help(String commandName, String sender){
+
+    @Override
+    protected void help(String commandName, String sender){
         Command command = registeredCommands.get(commandName);
         if(command != null){
             chatController.send(command.i18nCanonicalNameDescription(), command.commandName(), command.aliasesToString());
@@ -98,18 +83,8 @@ public class ChatCommands extends AbstractCommands{
         }
     }
 
-    private void registerAlias(){
-        register((sender, arguments) -> {
-            if(arguments.size() == 1){
-                String argument = arguments.get(0);
-                listAliases(argument, sender);
-            }else{
-                throw new IllegalArgumentException();
-            }
-        }, "alias");
-    }
-
-    private void listAliases(String commandName, String sender){
+    @Override
+    protected final void listAliases(String commandName, String sender){
         Command command = registeredCommands.get(commandName);
         if(command != null){
             chatController.send("chat-commands.alias", command.commandName(), command.aliasesToString());
