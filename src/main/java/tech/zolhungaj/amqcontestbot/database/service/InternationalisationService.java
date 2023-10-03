@@ -22,7 +22,10 @@ public class InternationalisationService {
         String message = getMessageForCanonicalName(i18nCanonicalName, languageCode, subLanguage);
         for(var i = 0; i < arguments.size(); i++){
             String search = "%" + (i+1) + "%";
-            message = message.replaceAll(search, String.valueOf(arguments.get(i)));
+            String argument = String.valueOf(arguments.get(i))
+                    .replace("\\", "\\\\")
+                    .replace("$", "\\$");
+            message = message.replaceAll(search, argument);
         }
         return message;
     }
