@@ -39,7 +39,7 @@ import java.util.stream.Collectors;
 @EnableScheduling
 @RequiredArgsConstructor
 public class LobbyStateManager {
-    private static final List<String> FULL_FILE_SERVERS = List.of("catbox");
+    private static final List<String> FULL_FILE_SERVERS = List.of("catboxEu", "catboxNaOne", "catboxNaTwo");
     private final ApiManager api;
     private final ChatController chatController;
     @Setter
