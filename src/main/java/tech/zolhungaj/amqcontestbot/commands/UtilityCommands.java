@@ -3,6 +3,7 @@ package tech.zolhungaj.amqcontestbot.commands;
 import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
+import tech.zolhungaj.amqapi.clientcommands.quiz.StartReturnToLobbyVote;
 import tech.zolhungaj.amqapi.servercommands.gameroom.GameChatMessage;
 import tech.zolhungaj.amqapi.servercommands.gameroom.GameChatUpdate;
 import tech.zolhungaj.amqcontestbot.ApiManager;
@@ -31,6 +32,7 @@ public class UtilityCommands {
         registerPing();
         registerSay();
         registerResolve();
+        registerLobby();
     }
 
     private void registerPing(){
@@ -86,5 +88,15 @@ public class UtilityCommands {
                 chatController.send("name-resolver.not-found", nickname);
             }
         }, Grant.NONE, "resolve");
+    }
+
+    private void registerLobby() {
+        chatCommands.register(
+                (sender, arguments) -> api.sendCommand(new StartReturnToLobbyVote()),
+                Grant.NONE,
+                "lobby",
+                "returntolobby",
+                "quit"
+        );
     }
 }
