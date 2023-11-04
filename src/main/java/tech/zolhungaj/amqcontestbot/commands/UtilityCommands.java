@@ -3,6 +3,8 @@ package tech.zolhungaj.amqcontestbot.commands;
 import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
+import tech.zolhungaj.amqapi.clientcommands.quiz.ContinueQuiz;
+import tech.zolhungaj.amqapi.clientcommands.quiz.PauseQuiz;
 import tech.zolhungaj.amqapi.clientcommands.quiz.StartReturnToLobbyVote;
 import tech.zolhungaj.amqapi.servercommands.gameroom.GameChatMessage;
 import tech.zolhungaj.amqapi.servercommands.gameroom.GameChatUpdate;
@@ -36,6 +38,7 @@ public class UtilityCommands {
         registerResolve();
         registerLobby();
         registerGamemodesHelp();
+        registerPause();
     }
 
     private void registerPing(){
@@ -126,6 +129,19 @@ public class UtilityCommands {
                 },
                 Grant.NONE,
                 scoreTypesCommand
+        );
+    }
+  
+    private void registerPause() {
+        chatCommands.register(
+                (sender, arguments) -> api.sendCommand(new PauseQuiz()),
+                Grant.NONE,
+                "pause"
+        );
+        chatCommands.register(
+                (sender, arguments) -> api.sendCommand(new ContinueQuiz()),
+                Grant.NONE,
+                "continue", "unpause"
         );
     }
 }
