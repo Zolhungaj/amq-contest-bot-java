@@ -9,6 +9,8 @@ import tech.zolhungaj.amqapi.servercommands.gameroom.GameChatUpdate;
 import tech.zolhungaj.amqcontestbot.ApiManager;
 import tech.zolhungaj.amqcontestbot.chat.ChatController;
 import tech.zolhungaj.amqcontestbot.chat.DirectMessageController;
+import tech.zolhungaj.amqcontestbot.database.enums.RulesetEnum;
+import tech.zolhungaj.amqcontestbot.database.enums.ScoringTypeEnum;
 import tech.zolhungaj.amqcontestbot.exceptions.IncorrectArgumentCountException;
 import tech.zolhungaj.amqcontestbot.exceptions.NameResolutionFailedException;
 import tech.zolhungaj.amqcontestbot.moderation.NameResolver;
@@ -33,6 +35,7 @@ public class UtilityCommands {
         registerSay();
         registerResolve();
         registerLobby();
+        registerGamemodesHelp();
     }
 
     private void registerPing(){
@@ -97,6 +100,32 @@ public class UtilityCommands {
                 "lobby",
                 "returntolobby",
                 "quit"
+        );
+    }
+
+    private void registerGamemodesHelp(){
+        final String rulesetsCommand = "rulesets";
+        final String scoreTypesCommand = "scoretypes";
+        chatCommands.register(
+                (sender, arguments) -> chatController.send("commands.gamemodes", rulesetsCommand, scoreTypesCommand),
+                Grant.NONE,
+                "gamemodes"
+        );
+        chatCommands.register(
+                (sender, arguments) -> {
+                    chatController.send("commands." + rulesetsCommand);
+                    RulesetEnum.allNames().forEach(rulesetNames -> chatController.sendRaw(String.join(", ", rulesetNames)));
+                },
+                Grant.NONE,
+                rulesetsCommand
+        );
+        chatCommands.register(
+                (sender, arguments) -> {
+                    chatController.send("commands." + scoreTypesCommand);
+                    ScoringTypeEnum.allNames().forEach(chatController::sendRaw);
+                },
+                Grant.NONE,
+                scoreTypesCommand
         );
     }
 }

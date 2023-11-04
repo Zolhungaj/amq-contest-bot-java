@@ -3,6 +3,7 @@ package tech.zolhungaj.amqcontestbot.database.enums;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Stream;
 
 public enum RulesetEnum {
     OPENINGS,
@@ -31,5 +32,11 @@ public enum RulesetEnum {
 
     public static RulesetEnum fromName(String gameModeName) {
         return MAP.get(gameModeName.toLowerCase());
+    }
+
+    public static List<List<String>> allNames(){
+        return Stream.of(values())
+                .map(REVERSE_MAP::get)
+                .toList();
     }
 }
