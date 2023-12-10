@@ -15,12 +15,14 @@ import tech.zolhungaj.amqcontestbot.gamemode.GameMode;
 import tech.zolhungaj.amqcontestbot.moderation.NameResolver;
 import tech.zolhungaj.amqcontestbot.room.lobby.LobbyStateManager;
 
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 
 @Component
 @RequiredArgsConstructor
 public class Leaderboard {
     private static final int MAX_LEADERBOARD_SIZE = 10;
+    private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mmz");
     private final ChatCommands commands;
     private final ChatController chat;
     private final LobbyStateManager lobbyStateManager;
@@ -79,8 +81,9 @@ public class Leaderboard {
             }
             previous = countView;
             ContestantEntity contestantEntity = countView.getContestant();
-            String timesAchieved = countView.getTimesAchieved() == 1 ? "" : "x" + countView.getTimesAchieved();
-            chat.send("leaderboard.entry", position, contestantEntity.getName(), countView.getScoreRepresentation(), timesAchieved, countView.getEarliestAchieved());
+            String timesAchieved = countView.getTimesAchieved() == 1 ? "" : "×" + countView.getTimesAchieved();
+            String earliestAchieved = countView.getEarliestAchieved().format(DATE_FORMATTER);
+            chat.send("leaderboard.entry", position, contestantEntity.getName(), countView.getScoreRepresentation(), timesAchieved, earliestAchieved);
         }
     }
 }
