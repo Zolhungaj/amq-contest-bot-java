@@ -9,7 +9,10 @@ import tech.zolhungaj.amqcontestbot.database.enums.ScoringTypeEnum;
 import tech.zolhungaj.amqcontestbot.database.model.ContestantEntity;
 import tech.zolhungaj.amqcontestbot.database.model.LeaderboardView;
 import tech.zolhungaj.amqcontestbot.database.service.LeaderboardService;
+import tech.zolhungaj.amqcontestbot.database.service.ModerationService;
+import tech.zolhungaj.amqcontestbot.exceptions.IncorrectArgumentCountException;
 import tech.zolhungaj.amqcontestbot.gamemode.GameMode;
+import tech.zolhungaj.amqcontestbot.moderation.NameResolver;
 import tech.zolhungaj.amqcontestbot.room.lobby.LobbyStateManager;
 
 import java.util.List;
@@ -22,13 +25,37 @@ public class Leaderboard {
     private final ChatController chat;
     private final LobbyStateManager lobbyStateManager;
     private final LeaderboardService leaderboardService;
+    private final ModerationService moderationService;
+    private final NameResolver nameResolver;
 
     @PostConstruct
     private void init(){
         commands.register((sender, arguments) -> {
-            if(arguments.isEmpty()){
+            final int leaderboardSize;
+            if((arguments.size() == 1 || arguments.size() == 4) && moderationService.isModerator(nameResolver.resolveOriginalName(sender))){
+                leaderboardSize = Integer.parseInt(arguments.get(arguments.size() - 1));
+            }else{
+                leaderboardSize = MAX_LEADERBOARD_SIZE;
+            }
+
+            if(arguments.isEmpty() || arguments.size() == 1){
                 GameMode gameMode = lobbyStateManager.getGameMode();
-                printLeaderboard(gameMode.ruleset(), gameMode.scoringType(), gameMode.teamSize(), MAX_LEADERBOARD_SIZE);
+                printLeaderboard(gameMode.ruleset(), gameMode.scoringType(), gameMode.teamSize(), leaderboardSize);
+            }else if(arguments.size() == 3 || arguments.size() == 4){
+                RulesetEnum rulesetEnum = RulesetEnum.fromName(arguments.get(0));
+                if(rulesetEnum == null){
+                    chat.send("leaderboard.invalid-ruleset", arguments.get(0));
+                    return;
+                }
+                ScoringTypeEnum scoringTypeEnum = ScoringTypeEnum.fromName(arguments.get(1));
+                if(scoringTypeEnum == null){
+                    chat.send("leaderboard.invalid-scoring-mode", arguments.get(1));
+                    return;
+                }
+                int teamSize = Integer.parseInt(arguments.get(2));
+                printLeaderboard(rulesetEnum, scoringTypeEnum, teamSize, leaderboardSize);
+            }else{
+                throw new IncorrectArgumentCountException(0, 1, 3, 4);
             }
 
         }, "leaderboard", "lb");
