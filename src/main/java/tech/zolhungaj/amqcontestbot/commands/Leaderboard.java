@@ -22,7 +22,7 @@ import java.util.List;
 @RequiredArgsConstructor
 public class Leaderboard {
     private static final int MAX_LEADERBOARD_SIZE = 10;
-    private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mmz");
+    private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
     private final ChatCommands commands;
     private final ChatController chat;
     private final LobbyStateManager lobbyStateManager;
