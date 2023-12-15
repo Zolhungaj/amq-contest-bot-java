@@ -39,11 +39,22 @@ public class ChatController {
         return messageChunked;
     }
 
+    /**
+     * Sends the next message in the queue, if any.
+     * <br>
+     * This method is called every 500ms. Which is more or less the limit the server allows.
+     * <br>
+     * Can and will flood the chat to keep related messages together.
+     */
     @Scheduled(fixedDelay = 500)
     private void sendMessage(){
         String nextMessage = pendingMessages.poll();
         if(nextMessage != null){
-            api.sendCommand(new SendPublicChatMessage(nextMessage));
+            try{
+                api.sendCommand(new SendPublicChatMessage(nextMessage));
+            }catch(RuntimeException e){
+                log.error("Failed to send message '{}'", nextMessage, e);
+            }
         }
     }
 }
