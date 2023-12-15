@@ -96,10 +96,11 @@ public class QuipGenerator {
     }
 
     private boolean commentOnMilestone(PlayerEntity playerEntity, String nickname, int currentLevel, boolean wasInRoom){
-        if(playerEntity.getLevel().isEmpty() || playerEntity.getLevel().get() >= currentLevel){
+        Optional<Integer> previousLevelOptional = playerEntity.getLevel();
+        if(previousLevelOptional.isEmpty() || previousLevelOptional.get() >= currentLevel){
             return false;
         }
-        int previousLevel = playerEntity.getLevel().get();
+        int previousLevel = previousLevelOptional.get();
         int firstLevelPassedThrough = previousLevel + 1;
         //check all levels passed through to decide what milestone to congratulate on
         int thousands = 0;
@@ -145,7 +146,8 @@ public class QuipGenerator {
 
     private boolean commentOnAvatar(PlayerEntity playerEntity, String nickname, PlayerAvatar currentAvatarRaw, boolean wasInRoom){
         PlayerAvatarEntity currentAvatar = PlayerAvatarEntity.of(currentAvatarRaw);
-        if(playerEntity.getAvatar().isEmpty() || playerEntity.getAvatar().get().equals(currentAvatar)){
+        Optional<PlayerAvatarEntity> previousAvatarOptional = playerEntity.getAvatar();
+        if(previousAvatarOptional.isEmpty() || previousAvatarOptional.get().equals(currentAvatar)){
             return false;
         }
         final String postfix;
