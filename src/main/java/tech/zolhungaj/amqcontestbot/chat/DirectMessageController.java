@@ -68,7 +68,11 @@ public class DirectMessageController {
     private void sendMessage(){
         DM nextMessage = pendingMessages.poll();
         if(nextMessage != null){
-            api.sendCommand(new SendDirectMessage(nextMessage.recipient, nextMessage.message));
+            try{
+                api.sendCommand(new SendDirectMessage(nextMessage.recipient, nextMessage.message));
+            }catch(RuntimeException e){
+                log.error("Failed to send DM '{}' to {}", nextMessage.message, nextMessage.recipient, e);
+            }
         }
     }
 
