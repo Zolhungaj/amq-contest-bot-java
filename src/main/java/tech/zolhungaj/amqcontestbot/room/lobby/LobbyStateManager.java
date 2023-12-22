@@ -9,7 +9,7 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.stereotype.Component;
 import tech.zolhungaj.amqapi.clientcommands.lobby.ChangeRoomSettings;
 import tech.zolhungaj.amqapi.clientcommands.lobby.MovePlayerToSpectator;
-import tech.zolhungaj.amqapi.clientcommands.roombrowser.HostRoom;
+import tech.zolhungaj.amqapi.clientcommands.roombrowser.HostMultiplayerRoom;
 import tech.zolhungaj.amqapi.servercommands.gameroom.SpectatorLeft;
 import tech.zolhungaj.amqapi.servercommands.gameroom.game.GameStarting;
 import tech.zolhungaj.amqapi.servercommands.gameroom.game.QuizOver;
@@ -86,7 +86,7 @@ public class LobbyStateManager {
 
     private void loginComplete(LoginComplete loginComplete){
         GameSettings initialSettings = gameMode.getNextSettings();
-        api.sendCommand(new HostRoom(initialSettings));
+        api.sendCommand(new HostMultiplayerRoom(initialSettings));
         loginComplete.serverStatuses().forEach(this::updateFileServerStatus);
     }
 

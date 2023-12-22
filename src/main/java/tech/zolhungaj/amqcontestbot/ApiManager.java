@@ -7,7 +7,6 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import tech.zolhungaj.amqapi.AmqApi;
-import tech.zolhungaj.amqapi.clientcommands.ClientCommand;
 import tech.zolhungaj.amqapi.servercommands.Command;
 import tech.zolhungaj.amqapi.servercommands.globalstate.LoginComplete;
 
@@ -51,7 +50,7 @@ public class ApiManager {
         this.api.once(commandClass, predicate);
     }
 
-    public void sendCommand(ClientCommand command){
+    public void sendCommand(Object command){
         this.api.sendCommand(command);
     }
 
