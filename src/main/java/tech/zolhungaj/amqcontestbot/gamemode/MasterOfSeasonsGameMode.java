@@ -51,7 +51,7 @@ public abstract class MasterOfSeasonsGameMode extends AbstractCountGameMode {
     }
 
     protected String roomPrefix(){
-        return "Master of Seasons";
+        return "Hermes of Seasons";
     }
     /**
      * Returns all valid seasons:

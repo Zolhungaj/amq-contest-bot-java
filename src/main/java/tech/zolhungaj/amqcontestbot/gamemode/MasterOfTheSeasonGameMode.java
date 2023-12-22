@@ -16,7 +16,7 @@ public abstract class MasterOfTheSeasonGameMode extends MasterOfSeasonsGameMode 
 
     @Override
     protected String roomPrefix() {
-        return "MasterOfTheSeason";
+        return "HermesOfTheSeason";
     }
 
     public void setCurrentVintage(Vintage currentVintage) {

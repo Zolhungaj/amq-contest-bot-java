@@ -62,18 +62,18 @@ public class GameModeFactory {
         };
         String roomName = switch (ruleset){
             case OPENINGS -> "Athena";
-            case ENDINGS -> "EDs";
-            case INSERTS -> "INs";
-            case OPENINGS_ENDINGS -> "Classic";
-            case ALL -> "All";
+            case ENDINGS -> "Ares";
+            case INSERTS -> "Hestia";
+            case OPENINGS_ENDINGS -> "Aphrodite";
+            case ALL -> "Hades";
             case ALL_HARD -> "Zeus";
             case MASTER_OF_THE_SEASON, MASTER_OF_SEASONS -> throw new IllegalStateException(); // Already handled above, for the compiler
         }
         + switch (scoringType){
-            case COUNT -> "";
+            case COUNT ->    "";
             case SPEEDRUN -> " Speedrun";
-            case SPEED -> " QuickDraw";
-            case LIVES -> " Lives";
+            case SPEED ->    " QuickDraw";
+            case LIVES ->    " Lives";
         };
 
         GameSettings settings = baseSettings.withTeamSize(teamSize).withRoomName(roomName);
