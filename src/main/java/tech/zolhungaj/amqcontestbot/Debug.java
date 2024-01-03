@@ -95,7 +95,11 @@ public class Debug {
             PlayerLeftQueue.class,
             DirectMessageAlert.class,
             SkipVotePassed.class,
-            QuizSkippingToNextPhase.class
+            QuizSkippingToNextPhase.class,
+            QuizPaused.class,
+            QuizResumed.class,
+            ReturnToLobbyVoteResult.class,
+            ReturnToLobbyVoteStarted.class
     );
     private final ApiManager api;
     private final Path debugJsonFile = Path.of(LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd_HH-mm-ss")) + ".json");
