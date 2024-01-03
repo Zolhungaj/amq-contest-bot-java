@@ -102,7 +102,7 @@ public class GameManager {
             Map<Integer, List<TeamPlayer>> teams = new HashMap<>();
             info.players()
                     .stream()
-                    .map(quizPlayer -> new TeamPlayer(quizPlayer.gamePlayerId(), quizPlayer.playerName(), quizPlayer.teamNumber().orElseThrow()))
+                    .map(quizPlayer -> new TeamPlayer(quizPlayer.gamePlayerId(), quizPlayer.playerName(), Optional.ofNullable(quizPlayer.teamNumber()).orElseThrow()))
                     .forEach(teamPlayer -> {
                 teams.putIfAbsent(teamPlayer.getTeamNumber(), new ArrayList<>());
                 teams.get(teamPlayer.getTeamNumber())

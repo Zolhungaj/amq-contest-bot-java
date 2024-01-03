@@ -56,7 +56,7 @@ public class SongService {
             songEntity.setTitle(title);
             songEntity.setArtist(artist);
         }
-        songEntity.setDifficulty(songInfo.animeDifficulty().orElse(null));
+        songEntity.setDifficulty(songInfo.animeDifficulty());
         log.info("Saving song: {}", songEntity);
         repository.save(songEntity);
         return songEntity;
@@ -72,11 +72,11 @@ public class SongService {
             entity = new AnimeEntity();
             entity.setId(animeId);
         }
-        songInfo.animeScore()
+        Optional.ofNullable(songInfo.animeScore())
                 .map(doubleValue -> BigDecimal.valueOf(doubleValue).setScale(2, RoundingMode.HALF_DOWN))
                 .ifPresentOrElse(entity::setRating, () -> entity.setRating(null));
-        songInfo.mainAnimeNames().english().ifPresentOrElse(entity::setEnglishName, () -> entity.setEnglishName(null));
-        songInfo.mainAnimeNames().romaji().ifPresentOrElse(entity::setRomajiName, () -> entity.setRomajiName(null));
+        Optional.ofNullable(songInfo.mainAnimeNames().english()).ifPresentOrElse(entity::setEnglishName, () -> entity.setEnglishName(null));
+        Optional.ofNullable(songInfo.mainAnimeNames().romaji()).ifPresentOrElse(entity::setRomajiName, () -> entity.setRomajiName(null));
         BroadcastFormatEnum broadcastFormat = switch (songInfo.animeType().toLowerCase(Locale.US)){
             case "tv" -> BroadcastFormatEnum.TV;
             case "ona" -> BroadcastFormatEnum.ONA;
@@ -86,10 +86,10 @@ public class SongService {
             default -> throw new IllegalArgumentException("Unexpected value: " + songInfo.animeType());
         };
         entity.setBroadcastFormat(broadcastFormat);
-        songInfo.siteIds().kitsuId().ifPresentOrElse(entity::setKitsuId, () -> entity.setKitsuId(null));
-        songInfo.siteIds().animeNewsNetworkId().ifPresentOrElse(entity::setAnimenewsnetworkId, () -> entity.setAnimenewsnetworkId(null));
-        songInfo.siteIds().myAnimeListId().ifPresentOrElse(entity::setMyanimelistId, () -> entity.setMyanimelistId(null));
-        songInfo.siteIds().aniListId().ifPresentOrElse(entity::setAnilistId, () -> entity.setAnilistId(null));
+        Optional.ofNullable(songInfo.siteIds().kitsuId()).ifPresentOrElse(entity::setKitsuId, () -> entity.setKitsuId(null));
+        Optional.ofNullable(songInfo.siteIds().animeNewsNetworkId()).ifPresentOrElse(entity::setAnimenewsnetworkId, () -> entity.setAnimenewsnetworkId(null));
+        Optional.ofNullable(songInfo.siteIds().myAnimeListId()).ifPresentOrElse(entity::setMyanimelistId, () -> entity.setMyanimelistId(null));
+        Optional.ofNullable(songInfo.siteIds().aniListId()).ifPresentOrElse(entity::setAnilistId, () -> entity.setAnilistId(null));
         String vintage = songInfo.vintage();
         //Vintage comes on the form "Season Year", e.g. "Winter 2019"
         String[] split = vintage.split(" ");

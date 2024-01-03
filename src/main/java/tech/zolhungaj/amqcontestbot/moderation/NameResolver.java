@@ -26,7 +26,7 @@ public class NameResolver {
 
     @PostConstruct
     private void init(){
-        api.on(PlayerProfile.class, profile -> resolvedNames.put(profile.nickname(), profile.originalName()));
+        api.on(PlayerProfile.class, profile -> resolvedNames.put(profile.playerName(), profile.originalName()));
     }
 
     /**
@@ -59,7 +59,7 @@ public class NameResolver {
             return future;
         }
         api.once(PlayerProfile.class, profile -> {
-            if(nickname.equals(profile.nickname())){
+            if(nickname.equals(profile.playerName())){
                 future.complete(profile.originalName());
                 return true;
             }

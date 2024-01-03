@@ -153,11 +153,19 @@ public class LobbyStateManager {
     }
 
     private void playerLeft(PlayerLeft playerLeft){
-        removePlayer(playerLeft.player().gamePlayerId().orElse(-1));
+        int gamePlayerId = -1;
+        if (playerLeft.player().gamePlayerId() != null) {
+            gamePlayerId = playerLeft.player().gamePlayerId();
+        }
+        removePlayer(gamePlayerId);
     }
 
     private void playerChangedToSpectator(PlayerChangedToSpectator playerChangedToSpectator){
-        removePlayer(playerChangedToSpectator.playerDescription().gamePlayerId().orElse(-1));
+        int gamePlayerId = -1;
+        if (playerChangedToSpectator.playerDescription().gamePlayerId() != null) {
+            gamePlayerId = playerChangedToSpectator.playerDescription().gamePlayerId();
+        }
+        removePlayer(gamePlayerId);
     }
 
     private void removePlayer(int gamePlayerId){
@@ -171,7 +179,7 @@ public class LobbyStateManager {
                 player.gamePlayerId(),
                 player.ready(),
                 true,
-                player.teamNumber(),
+                Optional.ofNullable(player.teamNumber()),
                 0);
     }
 
@@ -181,7 +189,7 @@ public class LobbyStateManager {
                 player.gamePlayerId(),
                 player.ready(),
                 true,
-                player.teamNumber(),
+                Optional.ofNullable(player.teamNumber()),
                 0);
     }
 

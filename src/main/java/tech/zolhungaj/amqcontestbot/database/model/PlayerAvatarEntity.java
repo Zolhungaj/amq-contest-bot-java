@@ -46,7 +46,7 @@ public record PlayerAvatarEntity(
                         playerAvatar.avatar().colorName(),
                         playerAvatar.avatar().backgroundFilename(),
                         playerAvatar.avatar().colorActive(),
-                        playerAvatar.avatar().editor().orElse(null),
+                        playerAvatar.avatar().editor(),
                         playerAvatar.avatar().sizeModifier(),
                         playerAvatar.avatar().optionName(),
                         playerAvatar.avatar().optionActive(),
