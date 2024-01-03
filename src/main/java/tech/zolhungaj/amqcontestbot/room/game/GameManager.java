@@ -67,7 +67,7 @@ public class GameManager {
             answerReveal
                     .answers()
                     .stream()
-                    .filter(answer -> answer.answer() != null && !answer.answer().isBlank())
+                    .filter(answer -> !answer.answer().isBlank())
                     .forEach(answer -> {
                         if(currentGameMode.teamSize() == 1){
                             playerAnswerTimes.putIfAbsent(answer.gamePlayerId(), Duration.between(roundStartTime, now));
