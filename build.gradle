@@ -30,6 +30,7 @@ dependencies {
 		// excluding simple-logging because I bring my own
 		exclude group: 'org.slf4j', module: 'slf4j-simple'
 	}
+	implementation 'org.json:json:20231013'
 	implementation 'org.springframework.boot:spring-boot-starter-actuator'
     implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
 	runtimeOnly 'org.postgresql:postgresql'

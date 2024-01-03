@@ -7,6 +7,7 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import tech.zolhungaj.amqapi.AmqApi;
+import tech.zolhungaj.amqapi.servercommands.CommandType;
 import tech.zolhungaj.amqapi.servercommands.globalstate.LoginComplete;
 
 import java.time.Instant;
@@ -41,6 +42,13 @@ public class ApiManager {
         this.api.onAllCommands(consumer);
     }
 
+    public void onAllJsonCommands(Consumer<org.json.JSONObject> consumer){
+        this.api.onAllJson(consumer);
+    }
+
+    public void registerCommand(Class<@CommandType ?> clazz){
+        this.api.registerCommand(clazz);
+    }
     public <T> void on(Class<T> commandClass, Consumer<T> consumer){
         this.api.on(commandClass, consumer);
     }
