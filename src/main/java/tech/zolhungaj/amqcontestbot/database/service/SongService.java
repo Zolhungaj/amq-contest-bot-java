@@ -56,7 +56,7 @@ public class SongService {
             songEntity.setTitle(title);
             songEntity.setArtist(artist);
         }
-        songEntity.setDifficulty(songInfo.animeDifficulty());
+        songEntity.setDifficulty(songInfo.animeDifficulty().doubleValue());
         log.info("Saving song: {}", songEntity);
         repository.save(songEntity);
         return songEntity;

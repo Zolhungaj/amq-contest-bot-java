@@ -99,7 +99,8 @@ public class Debug {
             QuizPaused.class,
             QuizResumed.class,
             ReturnToLobbyVoteResult.class,
-            ReturnToLobbyVoteStarted.class
+            ReturnToLobbyVoteStarted.class,
+            PlayerNameChanged.class
     );
     private final ApiManager api;
     private final Path debugJsonFile = Path.of(LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd_HH-mm-ss")) + ".json");
