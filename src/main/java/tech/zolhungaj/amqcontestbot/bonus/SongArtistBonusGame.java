@@ -101,7 +101,9 @@ public class SongArtistBonusGame {
                         return "%s+%.2f".formatted(sender, score);
                     })
                     .collect(Collectors.joining(" "));
-            chatController.send("bonus.score." + scoreType, scoresString);
+            if(!scoresString.isBlank()){
+                chatController.send("bonus.score." + scoreType, scoresString);
+            }
         }
     }
 
