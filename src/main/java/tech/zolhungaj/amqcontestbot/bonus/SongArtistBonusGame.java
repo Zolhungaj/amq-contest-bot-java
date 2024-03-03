@@ -84,7 +84,9 @@ public class SongArtistBonusGame {
         chatScore();
     }
 
-    private static double compareText(String original, String comparison){
+    private static double compareText(@NonNull String original, @NonNull String comparison){
+        original = original.toLowerCase();
+        comparison = comparison.toLowerCase();
         LevenshteinResults results = TEXT_COMPARER.apply(original, comparison);
         double currentScore = 1.0;
         if(results.getDeleteCount() > 0){
