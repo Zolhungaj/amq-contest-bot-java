@@ -3,8 +3,9 @@ package tech.zolhungaj.amqcontestbot.bonus;
 import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import lombok.With;
-import org.apache.commons.text.similarity.CosineDistance;
-import org.apache.commons.text.similarity.SimilarityScore;
+import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.text.similarity.LevenshteinDetailedDistance;
+import org.apache.commons.text.similarity.LevenshteinResults;
 import org.jetbrains.annotations.Nullable;
 import org.springframework.stereotype.Component;
 import tech.zolhungaj.amqapi.servercommands.gameroom.game.AnswerResults;
@@ -22,11 +23,12 @@ import java.util.function.Predicate;
 import java.util.function.ToDoubleFunction;
 import java.util.stream.Collectors;
 
+@Slf4j
 @Component
 @RequiredArgsConstructor
 public class SongArtistBonusGame {
-    private static final SimilarityScore<Double> TEXT_COMPARER = new CosineDistance();
-    private static final Predicate<Double> scoreCutoff = score -> score > 0.9;
+    private static final LevenshteinDetailedDistance TEXT_COMPARER = new LevenshteinDetailedDistance();
+    private static final Predicate<Double> scoreCutoff = score -> score > 0.8;
     private static final Answer NO_ANSWER = new Answer(Optional.empty(), Optional.empty(), Optional.empty());
     private final ApiManager apiManager;
     private final ChatCommands chatCommands;
@@ -60,25 +62,41 @@ public class SongArtistBonusGame {
             Score previousScore = scores.getOrDefault(sender, new Score(0, 0, 0));
             double animeScore = answer.anime.map(
                     anime -> validAnimeNames.stream()
-                        .mapToDouble(validAnime -> TEXT_COMPARER.apply(anime, validAnime))
+                        .mapToDouble(validAnime -> compareText(anime, validAnime))
                         .max()
                         .orElse(1.0) //case where there are no anime titles
                     )
                     .filter(scoreCutoff)
                     .orElse(0.0);
             double songScore = answer.song
-                    .map(song -> TEXT_COMPARER.apply(song, answerResults.songInfo().songName()))
+                    .map(song -> compareText(song, answerResults.songInfo().songName()))
                     .filter(scoreCutoff)
                     .orElse(0.0);
             double artistScore = answer.artist
-                    .map(artist -> TEXT_COMPARER.apply(artist, answerResults.songInfo().artist()))
+                    .map(artist -> compareText(artist, answerResults.songInfo().artist()))
                     .filter(scoreCutoff)
                     .orElse(0.0);
             Score scoreToAdd = new Score(animeScore, songScore, artistScore);
             lastScores.put(sender, scoreToAdd);
             scores.put(sender, previousScore.add(scoreToAdd));
+            log.info("Score for {}: anime: {}, song: {}, artist: {}", sender, animeScore, songScore, artistScore);
         });
         chatScore();
+    }
+
+    private static double compareText(String original, String comparison){
+        LevenshteinResults results = TEXT_COMPARER.apply(original, comparison);
+        double currentScore = 1.0;
+        if(results.getDeleteCount() > 0){
+            currentScore -= (Math.pow(1.030, results.getDeleteCount()) - 1.027);
+        }
+        if(results.getInsertCount() > 0){
+            currentScore -= (Math.pow(1.031, results.getInsertCount()) - 1.027);
+        }
+        if(results.getSubstituteCount() > 0){
+            currentScore -= (Math.pow(1.028, results.getSubstituteCount()) - 1.027);
+        }
+        return currentScore;
     }
 
     private void chatScore(){
