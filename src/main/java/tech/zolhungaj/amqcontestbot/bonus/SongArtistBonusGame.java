@@ -3,53 +3,106 @@ package tech.zolhungaj.amqcontestbot.bonus;
 import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import lombok.With;
+import org.apache.commons.text.similarity.CosineDistance;
+import org.apache.commons.text.similarity.SimilarityScore;
 import org.jetbrains.annotations.Nullable;
 import org.springframework.stereotype.Component;
 import tech.zolhungaj.amqapi.servercommands.gameroom.game.AnswerResults;
 import tech.zolhungaj.amqapi.servercommands.gameroom.game.PlayNextSong;
 import tech.zolhungaj.amqapi.servercommands.gameroom.game.QuizReady;
 import tech.zolhungaj.amqcontestbot.ApiManager;
+import tech.zolhungaj.amqcontestbot.chat.ChatController;
 import tech.zolhungaj.amqcontestbot.commands.ChatCommands;
 import tech.zolhungaj.amqcontestbot.commands.DirectMessageCommands;
 import tech.zolhungaj.amqcontestbot.exceptions.IncorrectArgumentCountException;
 
 import java.util.*;
+import java.util.function.Function;
+import java.util.function.Predicate;
+import java.util.function.ToDoubleFunction;
+import java.util.stream.Collectors;
 
 @Component
 @RequiredArgsConstructor
 public class SongArtistBonusGame {
+    private static final SimilarityScore<Double> TEXT_COMPARER = new CosineDistance();
+    private static final Predicate<Double> scoreCutoff = score -> score > 0.9;
     private static final Answer NO_ANSWER = new Answer(Optional.empty(), Optional.empty(), Optional.empty());
     private final ApiManager apiManager;
     private final ChatCommands chatCommands;
     private final DirectMessageCommands directMessageCommands;
+    private final ChatController chatController;
 
     private final Map<String, Answer> answers = new HashMap<>();
     private final Map<String, Score> scores = new HashMap<>();
+    private final Map<String, Score> lastScores = new HashMap<>();
 
 
     @PostConstruct
     private void init(){
-        registerChatCommands();
         apiManager.on(PlayNextSong.class, songStart -> answers.clear());
         apiManager.on(QuizReady.class, quizReady -> {
             answers.clear();
             scores.clear();
         });
-        apiManager.on(AnswerResults.class, answerResults -> {
-            List<String> validAnimeNames = new ArrayList<>();
-            validAnimeNames.add(answerResults.songInfo().mainAnimeNames().english());
-            validAnimeNames.add(answerResults.songInfo().mainAnimeNames().romaji());
-            validAnimeNames.addAll(answerResults.songInfo().alternativeAnimeNames());
-            validAnimeNames.addAll(answerResults.songInfo().alternativeAnimeNamesAnswers());
-            answers.forEach((player, answer) -> {
-                Score score = scores.getOrDefault(player, new Score(0, 0, 0));
-                scores.put(player, score.add(new Score(
-                        answer.anime().filter(validAnimeNames::contains).isPresent() ? 1 : 0,
-                        answer.song().filter(answerResults.songInfo().songName()::equals).isPresent() ? 1 : 0,
-                        answer.artist().filter(answerResults.songInfo().artist()::equals).isPresent() ? 1 : 0
-                )));
-            });
+        apiManager.on(AnswerResults.class, this::score);
+        registerChatCommands();
+    }
+
+    private void score(AnswerResults answerResults){
+        lastScores.clear();
+        List<String> validAnimeNames = new ArrayList<>();
+        validAnimeNames.add(answerResults.songInfo().mainAnimeNames().english());
+        validAnimeNames.add(answerResults.songInfo().mainAnimeNames().romaji());
+        validAnimeNames.addAll(answerResults.songInfo().alternativeAnimeNames());
+        validAnimeNames.addAll(answerResults.songInfo().alternativeAnimeNamesAnswers());
+        answers.forEach((sender, answer) -> {
+            Score previousScore = scores.getOrDefault(sender, new Score(0, 0, 0));
+            double animeScore = answer.anime.map(
+                    anime -> validAnimeNames.stream()
+                        .mapToDouble(validAnime -> TEXT_COMPARER.apply(anime, validAnime))
+                        .max()
+                        .orElse(1.0) //case where there are no anime titles
+                    )
+                    .filter(scoreCutoff)
+                    .orElse(0.0);
+            double songScore = answer.song
+                    .map(song -> TEXT_COMPARER.apply(song, answerResults.songInfo().songName()))
+                    .filter(scoreCutoff)
+                    .orElse(0.0);
+            double artistScore = answer.artist
+                    .map(artist -> TEXT_COMPARER.apply(artist, answerResults.songInfo().artist()))
+                    .filter(scoreCutoff)
+                    .orElse(0.0);
+            Score scoreToAdd = new Score(animeScore, songScore, artistScore);
+            lastScores.put(sender, scoreToAdd);
+            scores.put(sender, previousScore.add(scoreToAdd));
         });
+        chatScore();
+    }
+
+    private void chatScore(){
+        Function<Map.Entry<String,Score>, String> extractSender = Map.Entry::getKey;
+        Map<String, ToDoubleFunction<Map.Entry<String,Score>>> extractScores = Map.of(
+                "anime", entry -> entry.getValue().anime,
+                "song", entry -> entry.getValue().song,
+                "artist", entry -> entry.getValue().artist
+        );
+        for(Map.Entry<String, ToDoubleFunction<Map.Entry<String,Score>>> extractionFunction : extractScores.entrySet()){
+            String scoreType = extractionFunction.getKey();
+            ToDoubleFunction<Map.Entry<String,Score>> extractScore = extractionFunction.getValue();
+            String scoresString = lastScores.entrySet()
+                    .stream()
+                    .filter(entry -> extractScore.applyAsDouble(entry) > 0)
+                    .sorted(Comparator.comparingDouble(extractScore).reversed())
+                    .map(entry -> {
+                        String sender = extractSender.apply(entry);
+                        Double score = extractScore.applyAsDouble(entry);
+                        return "%s+%.2f".formatted(sender, score);
+                    })
+                    .collect(Collectors.joining(" "));
+            chatController.send("bonus.score." + scoreType, scoresString);
+        }
     }
 
     private void registerChatCommands(){
@@ -135,7 +188,7 @@ public class SongArtistBonusGame {
 
     @With
     private record Answer(Optional<String> anime, Optional<String> song, Optional<String> artist){}
-    private record Score(int anime, int song, int artist){
+    private record Score(double anime, double song, double artist){
         public Score add(Score other){
             return new Score(anime + other.anime, song + other.song, artist + other.artist);
         }
