@@ -1,6 +1,7 @@
 package tech.zolhungaj.amqcontestbot.bonus;
 
 import jakarta.annotation.PostConstruct;
+import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.With;
 import lombok.extern.slf4j.Slf4j;
@@ -10,6 +11,7 @@ import org.jetbrains.annotations.Nullable;
 import org.springframework.stereotype.Component;
 import tech.zolhungaj.amqapi.servercommands.gameroom.game.AnswerResults;
 import tech.zolhungaj.amqapi.servercommands.gameroom.game.PlayNextSong;
+import tech.zolhungaj.amqapi.servercommands.gameroom.game.QuizOver;
 import tech.zolhungaj.amqapi.servercommands.gameroom.game.QuizReady;
 import tech.zolhungaj.amqcontestbot.ApiManager;
 import tech.zolhungaj.amqcontestbot.chat.ChatController;
@@ -18,6 +20,7 @@ import tech.zolhungaj.amqcontestbot.commands.DirectMessageCommands;
 import tech.zolhungaj.amqcontestbot.exceptions.IncorrectArgumentCountException;
 
 import java.util.*;
+import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.function.ToDoubleFunction;
@@ -48,6 +51,12 @@ public class SongArtistBonusGame {
             scores.clear();
         });
         apiManager.on(AnswerResults.class, this::score);
+        apiManager.on(QuizOver.class, quizOver -> {
+            chatFinalScore();
+            answers.clear();
+            scores.clear();
+            lastScores.clear();
+        });
         registerChatCommands();
     }
 
@@ -81,7 +90,7 @@ public class SongArtistBonusGame {
             scores.put(sender, previousScore.add(scoreToAdd));
             log.info("Score for {}: anime: {}, song: {}, artist: {}", sender, animeScore, songScore, artistScore);
         });
-        chatScore();
+        chatLastScore();
     }
 
     private static double compareText(@NonNull String original, @NonNull String comparison){
@@ -101,7 +110,15 @@ public class SongArtistBonusGame {
         return currentScore;
     }
 
-    private void chatScore(){
+    private void chatFinalScore(){
+        chatScore(scores, "%s:%.2f"::formatted);
+    }
+
+    private void chatLastScore(){
+        chatScore(lastScores, "%s:+%.2f"::formatted);
+    }
+
+    private void chatScore(Map<String, Score> map, BiFunction<String, Double, String> formatter){
         Function<Map.Entry<String,Score>, String> extractSender = Map.Entry::getKey;
         Map<String, ToDoubleFunction<Map.Entry<String,Score>>> extractScores = Map.of(
                 "anime", entry -> entry.getValue().anime,
@@ -111,14 +128,14 @@ public class SongArtistBonusGame {
         for(Map.Entry<String, ToDoubleFunction<Map.Entry<String,Score>>> extractionFunction : extractScores.entrySet()){
             String scoreType = extractionFunction.getKey();
             ToDoubleFunction<Map.Entry<String,Score>> extractScore = extractionFunction.getValue();
-            String scoresString = lastScores.entrySet()
+            String scoresString = map.entrySet()
                     .stream()
                     .filter(entry -> extractScore.applyAsDouble(entry) > 0)
                     .sorted(Comparator.comparingDouble(extractScore).reversed())
                     .map(entry -> {
                         String sender = extractSender.apply(entry);
                         Double score = extractScore.applyAsDouble(entry);
-                        return "%s+%.2f".formatted(sender, score);
+                        return formatter.apply(sender, score);
                     })
                     .collect(Collectors.joining(" "));
             if(!scoresString.isBlank()){
