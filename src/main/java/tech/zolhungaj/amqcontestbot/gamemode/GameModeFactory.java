@@ -14,7 +14,7 @@ public class GameModeFactory {
             .guessTime(new GuessTime(15))
             .numberOfSongs(SONG_COUNT)
             .songSelection(SongSelection.of(SongSelection.SelectionIdentifier.RANDOM, SONG_COUNT))
-            .roomSize(40)
+            .roomSize(100)
             .songTypeSelection(SongTypeSelection.of(SONG_COUNT, SongTypeSelection.SongType.ALL))
             .build();
     public static GameMode getGameMode(@NonNull RulesetEnum ruleset, @NonNull ScoringTypeEnum scoringType){
