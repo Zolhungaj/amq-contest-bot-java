@@ -16,7 +16,7 @@ public abstract class MasterOfSeasonsGameMode extends AbstractCountGameMode {
             .guessTime(new GuessTime(15))
             .numberOfSongs(SONG_COUNT)
             .songSelection(SongSelection.of(SongSelection.SelectionIdentifier.RANDOM, SONG_COUNT))
-            .roomSize(40)
+            .roomSize(100)
             .songTypeSelection(SongTypeSelection.of(SONG_COUNT, SongTypeSelection.SongType.ALL))
             .build();
     private final RandomGenerator randomGenerator = new Random();
