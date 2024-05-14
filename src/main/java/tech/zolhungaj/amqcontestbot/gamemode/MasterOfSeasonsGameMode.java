@@ -23,8 +23,8 @@ public abstract class MasterOfSeasonsGameMode extends AbstractCountGameMode {
     @Override
     public GameSettings getNextSettings() {
         Vintage vintage = randomVintage();
-        int year = vintage.seasonRange().years().get(0) % 100;
-        int seasonValue = vintage.seasonRange().seasons().get(0);
+        int year = vintage.seasonRange().years().getFirst() % 100;
+        int seasonValue = vintage.seasonRange().seasons().getFirst();
         final String season;
         if(seasonValue == Vintage.Season.WINTER.value){
             season = "冬";

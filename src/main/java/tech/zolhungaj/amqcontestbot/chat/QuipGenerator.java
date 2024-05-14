@@ -37,7 +37,7 @@ public class QuipGenerator {
                 throw new IncorrectArgumentCountException(1);
             }
             try{
-                chattiness = Double.parseDouble(arguments.get(0));
+                chattiness = Double.parseDouble(arguments.getFirst());
             }catch (NumberFormatException e){
                 throw new IncorrectCommandUsageException("quip.setchattiness.invalid-number");
             }

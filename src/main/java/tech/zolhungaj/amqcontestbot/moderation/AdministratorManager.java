@@ -39,13 +39,13 @@ public class AdministratorManager {
             if(arguments.size() != 1){
                 throw new IncorrectArgumentCountException(1);
             }
-            addAdmin(sender, arguments.get(0));
+            addAdmin(sender, arguments.getFirst());
         }, Grant.ADMIN, "addadministrator", "addadmin");
         chatCommands.register((sender, arguments) -> {
             if(arguments.size() != 1){
                 throw new IncorrectArgumentCountException(1);
             }
-            removeAdmin(sender, arguments.get(0));
+            removeAdmin(sender, arguments.getFirst());
         }, Grant.ADMIN, "removeadministrator","removeadmin");
     }
 
@@ -54,13 +54,13 @@ public class AdministratorManager {
             if(arguments.size() != 1){
                 throw new IncorrectArgumentCountException(1);
             }
-            addModerator(sender, arguments.get(0));
+            addModerator(sender, arguments.getFirst());
         }, Grant.MODERATOR, "addmoderator", "addmod");
         chatCommands.register((sender, arguments) -> {
             if(arguments.size() != 1){
                 throw new IncorrectArgumentCountException(1);
             }
-            removeModerator(sender, arguments.get(0));
+            removeModerator(sender, arguments.getFirst());
         }, Grant.MODERATOR, "removemoderator", "removemod");
     }
 

@@ -44,9 +44,9 @@ public class Leaderboard {
                 GameMode gameMode = lobbyStateManager.getGameMode();
                 printLeaderboard(gameMode.ruleset(), gameMode.scoringType(), gameMode.teamSize(), leaderboardSize);
             }else if(arguments.size() == 3 || arguments.size() == 4){
-                RulesetEnum rulesetEnum = RulesetEnum.fromName(arguments.get(0));
+                RulesetEnum rulesetEnum = RulesetEnum.fromName(arguments.getFirst());
                 if(rulesetEnum == null){
-                    chat.send("leaderboard.invalid-ruleset", arguments.get(0));
+                    chat.send("leaderboard.invalid-ruleset", arguments.getFirst());
                     return;
                 }
                 ScoringTypeEnum scoringTypeEnum = ScoringTypeEnum.fromName(arguments.get(1));

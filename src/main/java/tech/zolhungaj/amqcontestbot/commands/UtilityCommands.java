@@ -43,7 +43,7 @@ public class UtilityCommands {
 
     private void registerPing(){
         chatCommands.register((sender, arguments) -> {
-            String sentMessage = chatController.send("ping.base").get(0);
+            String sentMessage = chatController.send("ping.base").getFirst();
             Instant sendInstant = Instant.now();
             long sendInstantAsMillis = sendInstant.toEpochMilli();
             Predicate<GameChatMessage> printWhenMatch = gameChatMessage -> {
@@ -86,7 +86,7 @@ public class UtilityCommands {
             if(arguments.size() != 1){
                 throw new IncorrectArgumentCountException(1);
             }
-            String nickname = arguments.get(0);
+            String nickname = arguments.getFirst();
             try{
                 String originalName = nameResolver.resolveOriginalName(nickname);
                 chatController.send("name-resolver.result", nickname, originalName);

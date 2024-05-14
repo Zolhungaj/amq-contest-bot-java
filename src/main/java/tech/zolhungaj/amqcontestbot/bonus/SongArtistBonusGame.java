@@ -169,7 +169,7 @@ public class SongArtistBonusGame {
         if(rawAnswers.size() > 3){
             throw new IncorrectArgumentCountException(1, 3);
         }
-        String anime = !rawAnswers.isEmpty() ? rawAnswers.get(0) : null;
+        String anime = !rawAnswers.isEmpty() ? rawAnswers.getFirst() : null;
         String song = rawAnswers.size() > 1 ? rawAnswers.get(1) : null;
         String artist = rawAnswers.size() > 2 ? rawAnswers.get(2) : null;
         answer(sender, anime, song, artist);
@@ -184,7 +184,7 @@ public class SongArtistBonusGame {
         if(rawAnswers.size() > 3){
             throw new IncorrectArgumentCountException(1, 2);
         }
-        String song = !rawAnswers.isEmpty() ? rawAnswers.get(0) : null;
+        String song = !rawAnswers.isEmpty() ? rawAnswers.getFirst() : null;
         String artist = rawAnswers.size() > 1 ? rawAnswers.get(1) : null;
         answer(sender, null, song, artist);
     }

@@ -59,7 +59,7 @@ public class LobbyManager {
             if(arguments.size() < 2 || arguments.size() > 3){
                 throw new IncorrectArgumentCountException(2, 3);
             }
-            String ruleset = arguments.get(0);
+            String ruleset = arguments.getFirst();
             RulesetEnum rulesetEnum = RulesetEnum.fromName(ruleset);
             if(rulesetEnum == null){
                 throw new IncorrectCommandUsageException("gamemode.vote.invalid-ruleset", ruleset);

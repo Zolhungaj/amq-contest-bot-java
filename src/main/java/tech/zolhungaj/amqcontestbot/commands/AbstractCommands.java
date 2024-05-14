@@ -29,7 +29,7 @@ public abstract class AbstractCommands {
             if(arguments.isEmpty()){
                 printCommandList(sender);
             } else if(arguments.size() == 1) {
-                String argument = arguments.get(0);
+                String argument = arguments.getFirst();
                 help(argument, sender);
             } else{
                 throw new IllegalArgumentException();
@@ -44,7 +44,7 @@ public abstract class AbstractCommands {
     private void registerAlias(){
         register((sender, arguments) -> {
             if(arguments.size() == 1){
-                String argument = arguments.get(0);
+                String argument = arguments.getFirst();
                 listAliases(argument, sender);
             }else{
                 throw new IllegalArgumentException();

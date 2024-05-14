@@ -24,7 +24,7 @@ public class Valour {
             }
             final double value;
             try{
-                value = Double.parseDouble(arguments.get(0));
+                value = Double.parseDouble(arguments.getFirst());
             }catch(NumberFormatException e){
                 throw new IncorrectCommandUsageException("bonus.roman.invalid-number");
             }

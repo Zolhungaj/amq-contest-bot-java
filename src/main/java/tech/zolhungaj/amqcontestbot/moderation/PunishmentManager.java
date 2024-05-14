@@ -46,7 +46,7 @@ public class PunishmentManager {
             if(arguments.size() < 2){
                 throw new IncorrectArgumentCountException(2, 999);
             }
-            String nickname = arguments.get(0);
+            String nickname = arguments.getFirst();
             String duration = arguments.get(1);
             final String reason;
             if(arguments.size() >= 3){
@@ -60,7 +60,7 @@ public class PunishmentManager {
             if(arguments.size() != 1){
                 throw new IncorrectArgumentCountException(1);
             }
-            String nickname = arguments.get(0);
+            String nickname = arguments.getFirst();
             unban(nickname, sender);
         }, Grant.ADMIN, "unban");
     }
@@ -70,7 +70,7 @@ public class PunishmentManager {
             if(arguments.size() < 2){
                 throw new IncorrectArgumentCountException(2, 999);
             }
-            String originalName = arguments.get(0);
+            String originalName = arguments.getFirst();
             String duration = arguments.get(1);
             final String reason;
             if(arguments.size() >= 3){
@@ -84,7 +84,7 @@ public class PunishmentManager {
             if(arguments.size() != 1){
                 throw new IncorrectArgumentCountException(1);
             }
-            String originalName = arguments.get(0);
+            String originalName = arguments.getFirst();
             unbanByOriginalName(originalName, sender);
         }, Grant.ADMIN, "unbanbyoriginalname", "unbantrue");
     }
@@ -94,7 +94,7 @@ public class PunishmentManager {
             if(arguments.isEmpty()){
                 throw new IncorrectArgumentCountException(1, 999);
             }
-            String nickname = arguments.get(0);
+            String nickname = arguments.getFirst();
             final String reason;
             if(arguments.size() >= 2){
                 reason = String.join(" ", arguments.subList(2, arguments.size()));
@@ -107,7 +107,7 @@ public class PunishmentManager {
             if(arguments.size() != 1){
                 throw new IncorrectArgumentCountException(1);
             }
-            String nickname = arguments.get(0);
+            String nickname = arguments.getFirst();
             unkick(nickname);
         }, Grant.MODERATOR, "unkick", "unyeet");
     }
