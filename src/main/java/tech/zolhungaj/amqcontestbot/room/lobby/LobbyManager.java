@@ -47,7 +47,7 @@ public class LobbyManager {
         chatCommands.register((sender, unused) -> {
             counter = WAIT_TIME;
             startIfPossible();
-        }, Grant.OWNER, "start");
+        }, Grant.PATREON, "start");
         chatCommands.register((sender, unused) -> {
             counter = MAX_WAIT_TIME;
             startIfPossible();

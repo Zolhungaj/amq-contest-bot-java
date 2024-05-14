@@ -8,6 +8,7 @@ import org.springframework.stereotype.Component;
 import tech.zolhungaj.amqapi.servercommands.gameroom.GameChatMessage;
 import tech.zolhungaj.amqapi.servercommands.gameroom.GameChatUpdate;
 import tech.zolhungaj.amqcontestbot.ApiManager;
+import tech.zolhungaj.amqcontestbot.bonus.Patreon;
 import tech.zolhungaj.amqcontestbot.chat.ChatController;
 import tech.zolhungaj.amqcontestbot.database.service.ModerationService;
 import tech.zolhungaj.amqcontestbot.moderation.NameResolver;
@@ -27,6 +28,7 @@ public class ChatCommands extends AbstractCommands{
     private final NameResolver nameResolver;
     private final ModerationService moderationService;
     private final ApiManager api;
+    private final Patreon patreon;
 
     @PostConstruct
     private void init(){
@@ -64,6 +66,9 @@ public class ChatCommands extends AbstractCommands{
         if(commandsByGrant.containsKey(Grant.OWNER) && moderationService.isOwner(originalName)){
             chatController.send("chat-commands.help.owner", String.join(", ", commandsByGrant.get(Grant.OWNER)));
         }
+        if(commandsByGrant.containsKey(Grant.PATREON) && patreon.isPatreon(originalName)){
+            chatController.send("chat-commands.help.patreon", String.join(", ", commandsByGrant.get(Grant.PATREON)));
+        }
     }
 
     @Override
@@ -100,7 +105,7 @@ public class ChatCommands extends AbstractCommands{
 
     private class ChatCommandHandler extends AbstractCommandHandler{
         public ChatCommandHandler(Command command, String sender, List<String> arguments) {
-            super(command, sender, arguments, moderationService, nameResolver);
+            super(command, sender, arguments, moderationService, nameResolver, patreon);
         }
 
         @Override

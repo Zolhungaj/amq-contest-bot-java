@@ -1,6 +1,7 @@
 package tech.zolhungaj.amqcontestbot.commands;
 
 import lombok.RequiredArgsConstructor;
+import tech.zolhungaj.amqcontestbot.bonus.Patreon;
 import tech.zolhungaj.amqcontestbot.database.service.ModerationService;
 import tech.zolhungaj.amqcontestbot.exceptions.CommandAccessDeniedException;
 import tech.zolhungaj.amqcontestbot.exceptions.IncorrectCommandUsageException;
@@ -16,6 +17,8 @@ public abstract class AbstractCommandHandler implements Runnable{
     private final List<String> arguments;
     private final ModerationService moderationService;
     private final NameResolver nameResolver;
+    private final Patreon patreon;
+
     @Override
     public void run() {
         try{
@@ -36,6 +39,7 @@ public abstract class AbstractCommandHandler implements Runnable{
             case MODERATOR -> moderationService::isModerator;
             case ADMIN -> moderationService::isAdmin;
             case OWNER -> moderationService::isOwner;
+            case PATREON -> patreon::isPatreon;
         };
         String originalName = nameResolver.resolveOriginalName(sender);
         if(hasPermission.test(originalName)){

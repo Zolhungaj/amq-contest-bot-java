@@ -4,5 +4,6 @@ public enum Grant {
     NONE,
     MODERATOR,
     ADMIN,
-    OWNER
+    OWNER,
+    PATREON
 }
