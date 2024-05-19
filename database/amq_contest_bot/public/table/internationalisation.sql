@@ -13,3 +13,5 @@ CREATE TABLE IF NOT EXISTS internationalisation
 ALTER TABLE internationalisation
     OWNER TO postgres;
 
+GRANT SELECT ON internationalisation TO martinch;
+

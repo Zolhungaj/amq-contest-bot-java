@@ -22,3 +22,5 @@ CREATE TABLE IF NOT EXISTS contestant
 ALTER TABLE contestant
     OWNER TO postgres;
 
+GRANT SELECT ON contestant TO martinch;
+

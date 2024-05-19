@@ -11,3 +11,5 @@ CREATE TABLE IF NOT EXISTS valour
 ALTER TABLE valour
     OWNER TO postgres;
 
+GRANT SELECT ON valour TO martinch;
+

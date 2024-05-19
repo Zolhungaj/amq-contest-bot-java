@@ -13,3 +13,5 @@ CREATE TABLE IF NOT EXISTS message
 ALTER TABLE message
     OWNER TO postgres;
 
+GRANT SELECT ON message TO martinch;
+

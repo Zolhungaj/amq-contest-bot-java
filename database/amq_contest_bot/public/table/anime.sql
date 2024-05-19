@@ -22,3 +22,5 @@ CREATE TABLE IF NOT EXISTS anime
 ALTER TABLE anime
     OWNER TO postgres;
 
+GRANT SELECT ON anime TO martinch;
+

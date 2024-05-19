@@ -15,3 +15,5 @@ CREATE TABLE IF NOT EXISTS contestant_song_answer
 ALTER TABLE contestant_song_answer
     OWNER TO postgres;
 
+GRANT SELECT ON contestant_song_answer TO martinch;
+
