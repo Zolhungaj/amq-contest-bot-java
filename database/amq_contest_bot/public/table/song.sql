@@ -16,3 +16,5 @@ CREATE TABLE IF NOT EXISTS song
 ALTER TABLE song
     OWNER TO postgres;
 
+GRANT SELECT ON song TO martinch;
+

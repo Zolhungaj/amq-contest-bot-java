@@ -10,3 +10,5 @@ CREATE TABLE IF NOT EXISTS admin_log
 ALTER TABLE admin_log
     OWNER TO postgres;
 
+GRANT SELECT ON admin_log TO martinch;
+

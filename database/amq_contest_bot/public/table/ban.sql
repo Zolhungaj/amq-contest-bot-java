@@ -12,3 +12,5 @@ CREATE TABLE IF NOT EXISTS ban
 ALTER TABLE ban
     OWNER TO postgres;
 
+GRANT SELECT ON ban TO martinch;
+

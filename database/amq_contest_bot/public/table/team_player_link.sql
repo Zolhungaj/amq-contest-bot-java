@@ -10,3 +10,5 @@ CREATE TABLE IF NOT EXISTS team_player_link
 ALTER TABLE team_player_link
     OWNER TO postgres;
 
+GRANT SELECT ON team_player_link TO martinch;
+

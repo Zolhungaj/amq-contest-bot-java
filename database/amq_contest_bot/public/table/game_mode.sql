@@ -18,3 +18,5 @@ CREATE TABLE IF NOT EXISTS game_mode
 ALTER TABLE game_mode
     OWNER TO postgres;
 
+GRANT SELECT ON game_mode TO martinch;
+

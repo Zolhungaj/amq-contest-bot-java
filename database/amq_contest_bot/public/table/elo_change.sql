@@ -10,3 +10,5 @@ CREATE TABLE IF NOT EXISTS elo_change
 ALTER TABLE elo_change
     OWNER TO postgres;
 
+GRANT SELECT ON elo_change TO martinch;
+

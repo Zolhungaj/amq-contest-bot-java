@@ -9,3 +9,5 @@ CREATE TABLE IF NOT EXISTS team
 ALTER TABLE team
     OWNER TO postgres;
 
+GRANT SELECT ON team TO martinch;
+
