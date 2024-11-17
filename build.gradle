@@ -12,8 +12,9 @@ bootJar {
 }
 
 java {
-	sourceCompatibility = JavaVersion.VERSION_21
-	targetCompatibility = JavaVersion.VERSION_21
+	toolchain {
+		languageVersion = JavaLanguageVersion.of(21)
+	}
 }
 
 configurations {
@@ -34,7 +35,7 @@ repositories {
 }
 
 dependencies {
-	implementation ('tech.zolhungaj:amq-api:0.25.0'){
+	implementation ('tech.zolhungaj:amq-api:0.27.1'){
 		// excluding simple-logging because I bring my own
 		exclude group: 'org.slf4j', module: 'slf4j-simple'
 	}
