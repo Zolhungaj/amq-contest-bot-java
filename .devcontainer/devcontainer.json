@@ -1,0 +1,15 @@
+// Info https://containers.dev/implementors/json_reference/
+{
+  "name": "Basic-environment",
+  //or https://containers.dev/guide/dockerfile
+  "image":  "amazoncorretto:21",
+  "remoteEnv": {
+    //"API_USERNAME": "",
+    //"API_PASSWORD": "",
+    //"SPRING_DATASOURCE_URL": "",
+    //"SPRING_DATASOURCE_USERNAME": "",
+    //"SPRING_DATASOURCE_PASSWORD": "",
+    "GITHUB_USERNAME": "${localEnv:GITHUB_USERNAME}",
+    "GPR_TOKEN": "${localEnv:GPR_TOKEN}"
+  }
+}
