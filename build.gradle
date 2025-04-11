@@ -47,7 +47,7 @@ dependencies {
 	annotationProcessor 'org.projectlombok:lombok:1.18.38'
 
 	//for text distance
-	implementation 'org.apache.commons:commons-text:1.13.0'
+	implementation 'org.apache.commons:commons-text:1.13.1'
 
 	testCompileOnly 'org.projectlombok:lombok:1.18.38'
 	testAnnotationProcessor 'org.projectlombok:lombok:1.18.38'
