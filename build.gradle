@@ -35,7 +35,7 @@ repositories {
 }
 
 dependencies {
-	implementation ('tech.zolhungaj:amq-api:0.28.0'){
+	implementation ('tech.zolhungaj:amq-api:0.29.2'){
 		// excluding simple-logging because I bring my own
 		exclude group: 'org.slf4j', module: 'slf4j-simple'
 	}

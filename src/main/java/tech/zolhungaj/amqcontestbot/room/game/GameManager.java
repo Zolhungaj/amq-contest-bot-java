@@ -50,20 +50,22 @@ public class GameManager {
         api.on(AnswerResults.class, this::answerResults);
         api.on(PlayNextSong.class, playNextSong -> roundStartTime = Instant.now());
         api.on(PlayersAnswered.class, playersAnswered -> {
-            Instant now = Instant.now();
             if(currentGame != null){
-                playersAnswered.gamePlayerIds().forEach(gamePlayerId -> {
-                    if(players.containsKey(gamePlayerId)){
-                        playerAnswerTimes.put(gamePlayerId, Duration.between(roundStartTime, now));
-                    }else{
-                        log.error("Unknown gamePlayerId {}", gamePlayerId);
-                    }
+                playersAnswered.timePerPlayerList().forEach(timePerPlayer -> {
+                    Duration answerTime = Duration.ofMillis((long)(timePerPlayer.getAnswerTime()*1000));
+                    timePerPlayer.getGamePlayerIds().forEach(gamePlayerId -> {
+                        if(players.containsKey(gamePlayerId)){
+                            playerAnswerTimes.put(gamePlayerId, answerTime);
+                        }else{
+                            log.error("Unknown gamePlayerId {}", gamePlayerId);
+                        }
+                    });
                 });
             }
         });
         api.on(AnswerReveal.class, answerReveal -> {
             Instant now = Instant.now();
-            //as a backup, anyone who has an answer at this point but no answer time, gets the round time
+            //as a backup, anyone who has an answer at this point, but no answer time, gets the round time
             answerReveal
                     .answers()
                     .stream()
