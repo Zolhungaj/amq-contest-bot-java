@@ -38,7 +38,7 @@ public class QuipGenerator {
             }
             try{
                 chattiness = Double.parseDouble(arguments.getFirst());
-            }catch (NumberFormatException e){
+            }catch (NumberFormatException _){
                 throw new IncorrectCommandUsageException("quip.setchattiness.invalid-number");
             }
         }, Grant.MODERATOR, "setchattiness");
@@ -67,7 +67,21 @@ public class QuipGenerator {
             * */
             List<String> genres = songInfo.map(SongInfo::animeGenre).orElse(List.of());
             List<String> tags = songInfo.map(SongInfo::animeTags).orElse(List.of());
-            Optional<String> vintage = songInfo.map(SongInfo::vintage);
+            Optional<String> vintage = songInfo.map(SongInfo::vintage).map(localisation -> {
+                String season = switch (localisation.key()){
+                    //ugly hack, but it should work
+                    case "song_library.anime_entry.vintage.spring" -> "Spring";
+                    case "song_library.anime_entry.vintage.summer" -> "Summer";
+                    case "song_library.anime_entry.vintage.fall" -> "Fall";
+                    case "song_library.anime_entry.vintage.winter" -> "Winter";
+                    default -> null;
+                };
+                int year = localisation.data().getYear();
+                if(season == null){
+                    return null;
+                }
+                return season + " " + year;
+            });
             if(!names.isEmpty() && randomGenerator.nextInt(2) == 0){
                 chatController.send("quip.anime.name", names.get(randomGenerator.nextInt(names.size())));
             }else if(!genres.isEmpty() && randomGenerator.nextInt(3) == 0){

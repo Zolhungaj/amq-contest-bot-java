@@ -90,17 +90,14 @@ public class SongService {
         Optional.ofNullable(songInfo.siteIds().animeNewsNetworkId()).ifPresentOrElse(entity::setAnimenewsnetworkId, () -> entity.setAnimenewsnetworkId(null));
         Optional.ofNullable(songInfo.siteIds().myAnimeListId()).ifPresentOrElse(entity::setMyanimelistId, () -> entity.setMyanimelistId(null));
         Optional.ofNullable(songInfo.siteIds().aniListId()).ifPresentOrElse(entity::setAnilistId, () -> entity.setAnilistId(null));
-        String vintage = songInfo.vintage();
-        //Vintage comes on the form "Season Year", e.g. "Winter 2019"
-        String[] split = vintage.split(" ");
-        SeasonEnum seasonEnum = switch (split[0].toLowerCase(Locale.US)){
-            case "winter" -> SeasonEnum.WINTER;
-            case "spring" -> SeasonEnum.SPRING;
-            case "summer" -> SeasonEnum.SUMMER;
-            case "fall" -> SeasonEnum.AUTUMN;
-            default -> throw new IllegalArgumentException("Unexpected value: " + split[1]);
+        SeasonEnum seasonEnum = switch (songInfo.vintage().key()){
+            case "song_library.anime_entry.vintage.spring" -> SeasonEnum.SPRING;
+            case "song_library.anime_entry.vintage.summer" -> SeasonEnum.SUMMER;
+            case "song_library.anime_entry.vintage.fall" -> SeasonEnum.AUTUMN;
+            case "song_library.anime_entry.vintage.winter" -> SeasonEnum.WINTER;
+            default -> throw new IllegalArgumentException("Unexpected value: " + songInfo.vintage().key());
         };
-        int year = Integer.parseInt(split[1]);
+        int year = songInfo.vintage().data().getYear();
         entity.setYear(year);
         entity.setSeason(seasonEnum);
         return animeRepository.save(entity);
